@@ -1663,7 +1663,13 @@
     }
 
     // ---- Packaging / wiring plan display ----
-    let packagingHtml = `<div>☀️ بسته‌بندی پنل‌ها: <b>${toFa(panelWiring.seriesCount)}</b> پنل مسلسل (سری) در هر رشته × <b>${toFa(panelWiring.parallelStrings)}</b> رشته موازی = <b>${toFa(panelWiring.totalPanels)}</b> پنل — نوع سیم‌کشی: <b>${panelWiring.wiringType}</b></div>`;
+    let packagingHtml = '';
+    const rawKw = (rawPanelCount*panelWatt)/1000;
+    packagingHtml += `<div class="hint">📐 نیاز خام محاسبه‌شده: مصرف روزانه (${num(dailyKwh,2)} kWh) ÷ ساعت آفتاب (${num(sunHours,1)}) ÷ راندمان سیستم (${toFa(Math.round(efficiency*100))}٪، یعنی ${toFa(Math.round(SYSTEM_LOSS_FACTOR*100))}٪ تلفات کابل/گرد‌وغبار/حرارت/اینورتر در نظر گرفته شده) = <b>${num(requiredKw,2)} کیلووات</b> → حداقل <b>${toFa(rawPanelCount)} پنل</b> (${num(rawKw,2)} کیلووات)</div>`;
+    if(panelWiring.totalPanels !== rawPanelCount){
+      packagingHtml += `<div class="hint">🔧 برای تکمیل آرایش استاندارد رشته سری-موازی (همه رشته‌ها هم‌طول)، تعداد پنل از ${toFa(rawPanelCount)} به <b>${toFa(panelWiring.totalPanels)}</b> گرد شده — این افزایش لازم است تا رشته‌ها ولتاژ یکسان داشته باشند و باعث افت راندمان یا آسیب به کنترلر/اینورتر نشود.</div>`;
+    }
+    packagingHtml += `<div>☀️ بسته‌بندی پنل‌ها: <b>${toFa(panelWiring.seriesCount)}</b> پنل مسلسل (سری) در هر رشته × <b>${toFa(panelWiring.parallelStrings)}</b> رشته موازی = <b>${toFa(panelWiring.totalPanels)}</b> پنل — نوع سیم‌کشی: <b>${panelWiring.wiringType}</b></div>`;
     packagingHtml += `<div>⚡ ولتاژ کل آرایه (Vmp): <b>${num(panelWiring.arrayVoltage,1)} ولت</b> &nbsp;|&nbsp; جریان کل آرایه (Imp): <b>${num(panelWiring.arrayCurrent,1)} آمپر</b></div>`;
     if(systemType!=='ongrid' && batteryBank){
       if(batteryBank.totalCount>0){
