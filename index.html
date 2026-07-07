@@ -774,6 +774,12 @@
         <div id="cablingResults" style="font-size:.83rem; line-height:2;"></div>
         <p class="hint">⚠️ این یک برآورد اولیه استاندارد بر اساس جریان مجاز و افت ولتاژ است؛ طراحی نهایی و پیکربندی رشته‌های پنل و باتری را حتماً با یک برق‌کار/طراح مجاز تایید کنید.</p>
       </div>
+
+      <div class="section-card accent-gold" id="protectionCard">
+        <div class="section-head"><span class="num">۹</span><h3>حفاظت الکتریکی: بریکر (MCB) و فیوز</h3></div>
+        <div id="protectionResults" style="font-size:.83rem; line-height:2;"></div>
+        <p class="hint">⚠️ آمپراژ بریکر/فیوز بر اساس جریان طراحی با ضریب ایمنی محاسبه شده و باید توسط برق‌کار مجاز با مشخصات دقیق تجهیزات نهایی تایید شود. همیشه بریکر/فیوز روی سیم مثبت (+) نصب می‌شود، نه روی منفی یا ارت.</p>
+      </div>
     </section>
 
     <!-- PREVIEW PANE -->
@@ -805,6 +811,8 @@
       </div>
 
       <div class="cust-recap" id="custRecap"></div>
+
+      <div id="diagramBox" style="margin-bottom:16px;"></div>
 
       <div class="table-scroll">
         <table class="quote-table">
@@ -1133,6 +1141,8 @@
   /* ---------- Standard sizes ---------- */
   const STANDARD_INVERTERS = [1,1.5,2,3,3.5,5,6,8,10,12,15,20,25,30];
   const STANDARD_CONTROLLERS_A = [10,20,30,40,50,60,80,100,120,150]; // common MPPT charge-controller current ratings (amps)
+  const STANDARD_BREAKERS_A = [2,4,6,10,13,16,20,25,32,40,50,63,80,100,125,160,200,250]; // common DC/AC MCB current ratings (amps)
+  const STANDARD_FUSES_A = [2,4,6,10,15,20,25,30,35,40,50,60,70,80,100,125,150,200]; // common DC fuse (string/battery) current ratings (amps)
   function roundUpStandard(list, value){
     for(const s of list){ if(s >= value-1e-9) return s; }
     return list[list.length-1];
@@ -1236,6 +1246,161 @@
     const ratedCurrent = roundUpStandard(STANDARD_CONTROLLERS_A, designCurrent);
     const voltageOk = arrayVoltage>0 && arrayVoltage<=150;
     return {designCurrent, ratedCurrent, voltageOk};
+  }
+
+  /* ---------- Breaker (MCB) & fuse sizing ----------
+     Recommends standard breaker/fuse current ratings and installation
+     location for every protection point in the system:
+       - PV main DC breaker/isolator (array -> controller/inverter)
+       - Per-string fuse (only relevant once there are 2+ parallel strings,
+         sized ~156% of a single string's short-circuit-ish current per
+         common PV design practice)
+       - Battery DC breaker/fuse (battery -> inverter)
+       - AC output breaker (inverter -> load distribution panel)
+       - AC grid/utility breaker (grid <-> inverter, for on-grid/hybrid)
+     This is informational guidance, not a substitute for a licensed
+     electrician's final protection coordination study. */
+  function calcProtection(systemType, panelWiring, batteryCableInfo, batteryVoltage, inverterKw, panelSpec){
+    const result = {};
+
+    // PV main DC breaker/isolator — sized from total array current, 1.25 safety factor
+    const pvDesignA = (panelWiring.arrayCurrent||0) * 1.25;
+    result.pvBreakerA = roundUpStandard(STANDARD_BREAKERS_A, pvDesignA);
+    result.pvDesignA = pvDesignA;
+
+    // Per-string fuse — only needed once 2+ parallel strings exist (reverse-current protection)
+    if(panelWiring.parallelStrings >= 2){
+      const stringDesignA = (panelSpec.imp||0) * 1.56; // ~156% of Isc, common PV fuse sizing practice
+      result.stringFuseA = roundUpStandard(STANDARD_FUSES_A, stringDesignA);
+      result.stringFuseNeeded = true;
+    } else {
+      result.stringFuseNeeded = false;
+    }
+
+    // Battery DC breaker/fuse — sized from the battery cable design current already computed for cabling
+    if(systemType!=='ongrid' && batteryCableInfo){
+      const battDesignA = batteryCableInfo.current * 1.25;
+      result.battBreakerA = roundUpStandard(STANDARD_BREAKERS_A, battDesignA);
+      result.battDesignA = battDesignA;
+    }
+
+    // AC output breaker (inverter -> distribution panel) — assumes 230V single-phase, 1.25 safety factor
+    const acOutDesignA = inverterKw>0 ? ((inverterKw*1000)/230)*1.25 : 0;
+    result.acOutBreakerA = roundUpStandard(STANDARD_BREAKERS_A, acOutDesignA);
+    result.acOutDesignA = acOutDesignA;
+
+    // AC grid/utility breaker (grid <-> inverter), relevant for on-grid and hybrid systems
+    if(systemType!=='offgrid'){
+      result.acGridBreakerA = result.acOutBreakerA; // same order-of-magnitude at the point of common coupling
+    }
+
+    return result;
+  }
+
+  function renderProtection(systemType, protection){
+    const box = document.getElementById('protectionResults');
+    let html = '';
+    html += `<div>🔲 بریکر/ایزولاتور اصلی DC (بین آرایه پنل و ${systemType==='ongrid' ? 'اینورتر' : 'کنترلر/اینورتر هیبریدی'}): <b>${toFa(protection.pvBreakerA)} آمپر</b> — نصب: داخل کمبینر باکس، بلافاصله بعد از پنل‌ها و قبل از کابل اصلی</div>`;
+    if(protection.stringFuseNeeded){
+      html += `<div>🔲 فیوز هر رشته پنل (String Fuse): <b>${toFa(protection.stringFuseA)} آمپر</b> — نصب: روی سیم مثبت هر رشته، داخل کمبینر باکس، قبل از اتصال به بریکر اصلی — چون بیش از یک رشته موازی دارید</div>`;
+    } else {
+      html += `<div class="hint">فیوز جداگانه برای هر رشته لازم نیست چون فقط یک رشته پنل دارید؛ همان بریکر اصلی DC کافی است.</div>`;
+    }
+    if(protection.battBreakerA){
+      html += `<div>🔲 بریکر/فیوز باتری (DC): <b>${toFa(protection.battBreakerA)} آمپر</b> — نصب: مستقیم روی سیم مثبت باتری، حداکثر ۱۵ تا ۲۰ سانتی‌متر از ترمینال باتری (نزدیک‌ترین نقطه ممکن)</div>`;
+    }
+    html += `<div>🔲 بریکر خروجی AC اینورتر: <b>${toFa(protection.acOutBreakerA)} آمپر</b> — نصب: بین خروجی اینورتر و تابلو توزیع برق داخل ساختمان</div>`;
+    if(protection.acGridBreakerA){
+      html += `<div>🔲 بریکر برق شهری/کنتور (AC): <b>${toFa(protection.acGridBreakerA)} آمپر</b> — نصب: بین کنتور برق شهری و ورودی اینورتر ${systemType==='hybrid' ? 'هیبریدی' : 'آن‌گرید'}</div>`;
+    }
+    box.innerHTML = html;
+  }
+
+  /* ---------- Full system schematic diagram (SVG, vector — not an image) ----------
+     Draws the actual electrical path (Solar -> Controller/Hybrid Inverter ->
+     Battery / Load / Grid) with every breaker & fuse rating labeled directly
+     on the connecting line, so the diagram always matches the numbers above
+     it. Three fixed layouts (on-grid / off-grid / hybrid) since the topology
+     genuinely differs between them. */
+  function svgBox(x, y, w, h, lines, fill, strokeColor){
+    const lineHeight = 13;
+    const startY = y + h/2 - ((lines.length-1)*lineHeight)/2 + 4;
+    const text = lines.map((t,i)=> `<text x="${x+w/2}" y="${startY+i*lineHeight}" text-anchor="middle" font-size="11" font-family="inherit" fill="#142C4C" font-weight="${i===0?'700':'400'}">${escapeHtml(t)}</text>`).join('');
+    return `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="8" fill="${fill}" stroke="${strokeColor}" stroke-width="1.5"/>${text}`;
+  }
+  function svgArrow(x1, y1, x2, y2, label, labelSide){
+    labelSide = labelSide || 'right';
+    const midX = (x1+x2)/2, midY = (y1+y2)/2;
+    let lx = midX, ly = midY, anchor = 'middle';
+    if(labelSide==='right'){ lx = midX + 8; anchor = 'start'; }
+    else if(labelSide==='left'){ lx = midX - 8; anchor = 'end'; }
+    else if(labelSide==='below'){ ly = midY + 12; }
+    else if(labelSide==='above'){ ly = midY - 6; }
+    const labelHtml = label ? `<text x="${lx}" y="${ly}" text-anchor="${anchor}" font-size="10.5" font-family="inherit" fill="#8a5c15" font-weight="600">${escapeHtml(label)}</text>` : '';
+    return `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#1C9C90" stroke-width="2" marker-end="url(#arrowhead)"/>${labelHtml}`;
+  }
+  const SVG_MARKER_DEFS = `<defs><marker id="arrowhead" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L0,6 L7,3 z" fill="#1C9C90"/></marker></defs>`;
+
+  function buildSystemDiagramSVG(systemType, panelCount, panelWatt, protection, battInfo){
+    const panelLbl = [`☀️ آرایه پنل خورشیدی`, `${toFa(panelCount)} × ${toFa(panelWatt)} وات`];
+    const pvBreakerLbl = protection.stringFuseNeeded
+      ? `بریکر ${toFa(protection.pvBreakerA)}آ + فیوز رشته ${toFa(protection.stringFuseA)}آ`
+      : `بریکر DC ${toFa(protection.pvBreakerA)} آمپر`;
+
+    if(systemType==='ongrid'){
+      const svg = `
+        ${svgBox(90,10,180,50,panelLbl,'#FBEDD3','#E0A542')}
+        ${svgArrow(180,60,180,100,pvBreakerLbl,'right')}
+        ${svgBox(90,100,180,50,['🔌 اینورتر آن‌گرید'],'#E4F4F2','#1C9C90')}
+        ${svgArrow(180,150,180,190,`بریکر AC ${toFa(protection.acOutBreakerA)} آمپر`,'right')}
+        ${svgBox(90,190,180,50,['🏠 تابلو توزیع برق خانه'],'#FCFDFD','#DDE3E1')}
+        ${svgArrow(180,240,180,280,`بریکر ${toFa(protection.acGridBreakerA)} آمپر`,'right')}
+        ${svgBox(90,280,180,50,['⚡ برق شهری (کنتور)'],'#FBEDD3','#E0A542')}
+      `;
+      return {viewBox:'0 0 360 340', body: svg};
+    }
+
+    if(systemType==='offgrid'){
+      const svg = `
+        ${svgBox(90,10,180,50,panelLbl,'#FBEDD3','#E0A542')}
+        ${svgArrow(180,60,180,100,pvBreakerLbl,'right')}
+        ${svgBox(90,100,180,50,['🎛️ شارژ کنترلر MPPT', `${toFa(protection.pvBreakerA)} آمپر کلاس`],'#E4F4F2','#1C9C90')}
+        ${svgArrow(180,150,180,190,protection.battBreakerA?`بریکر باتری ${toFa(protection.battBreakerA)} آمپر`:'','right')}
+        ${svgBox(90,190,180,50,['🔋 بانک باتری', battInfo],'#FBEDD3','#E0A542')}
+        ${svgArrow(180,240,180,280,'','right')}
+        ${svgBox(90,280,180,50,['⚙️ اینورتر آف‌گرید'],'#E4F4F2','#1C9C90')}
+        ${svgArrow(180,330,180,370,`بریکر AC ${toFa(protection.acOutBreakerA)} آمپر`,'right')}
+        ${svgBox(90,370,180,50,['🏠 لودها / مصرف‌کننده‌ها'],'#FCFDFD','#DDE3E1')}
+      `;
+      return {viewBox:'0 0 360 430', body: svg};
+    }
+
+    // hybrid — one hub (hybrid inverter) branching to battery, loads, and grid
+    const svg = `
+      ${svgBox(90,10,180,50,panelLbl,'#FBEDD3','#E0A542')}
+      ${svgArrow(180,60,180,100,pvBreakerLbl,'right')}
+      ${svgBox(90,100,180,55,['⚡ اینورتر هیبریدی'],'#E4F4F2','#1C9C90')}
+      ${svgArrow(155,155,70,210,protection.battBreakerA?`بریکر باتری ${toFa(protection.battBreakerA)}آ`:'','left')}
+      ${svgBox(0,210,140,50,['🔋 بانک باتری', battInfo],'#FBEDD3','#E0A542')}
+      ${svgArrow(180,155,180,210,`بریکر AC ${toFa(protection.acOutBreakerA)}آ`,'right')}
+      ${svgBox(110,210,140,50,['🏠 لودها'],'#FCFDFD','#DDE3E1')}
+      ${svgArrow(255,155,330,210,protection.acGridBreakerA?`بریکر برق ${toFa(protection.acGridBreakerA)}آ`:'','right')}
+      ${svgBox(270,210,150,50,['⚡ برق شهری'],'#FBEDD3','#E0A542')}
+    `;
+    return {viewBox:'0 0 440 280', body: svg};
+  }
+
+  function renderDiagram(systemType, panelCount, panelWatt, protection, batteryKwh, batteryAh, batteryVoltage){
+    const box = document.getElementById('diagramBox');
+    const battInfo = systemType!=='ongrid' ? `${num(batteryKwh,1)} kWh / ${toFa(batteryVoltage)}V` : '';
+    const d = buildSystemDiagramSVG(systemType, panelCount, panelWatt, protection, battInfo);
+    box.innerHTML = `
+      <div class="section-card" style="padding:12px;">
+        <div class="section-head" style="margin-bottom:8px;"><span class="num">🗺️</span><h3>نمودار شماتیک سیستم (وکتور)</h3></div>
+        <svg viewBox="${d.viewBox}" style="width:100%; height:auto; display:block;">${SVG_MARKER_DEFS}${d.body}</svg>
+        <p class="hint" style="margin-top:6px;">آ = آمپر. این نمودار شماتیک ساده‌شده است؛ سیم ارت، SPD و جزئیات تابلو در نقشهٔ نهایی برق‌کار باید اضافه شود.</p>
+      </div>
+    `;
   }
 
   /* ---------- User Manual (PDF) extraction ----------
@@ -1538,6 +1703,13 @@
       <div>🔌 کابل اصلی DC (پنل‌ها تا اینورتر/کنترلر): جریان طراحی ${num(mainDcCurrent/1.25,1)} آمپر → سطح مقطع پیشنهادی <b>${toFa(mainWire.mm2)} mm²</b> (افت ولتاژ تقریبی ${num(mainVdrop,2)}٪)</div>
       ${batteryCableInfo ? `<div>🔋 کابل باتری تا اینورتر: جریان طراحی ${num(batteryCableInfo.current,1)} آمپر → سطح مقطع پیشنهادی <b>${toFa(batteryCableInfo.wire.mm2)} mm²</b> (افت ولتاژ تقریبی ${num(batteryCableInfo.vdrop,2)}٪)</div>` : ''}
     `;
+
+    // ---- Breaker (MCB) & fuse protection recommendations ----
+    const protection = calcProtection(systemType, panelWiring, batteryCableInfo, batteryVoltage, inverterKw, panelSpec);
+    renderProtection(systemType, protection);
+
+    // ---- Full system schematic diagram (SVG) ----
+    renderDiagram(systemType, panelCount, panelWatt, protection, batteryKwh, batteryAh, batteryVoltage);
 
     // Currency-aware label updates (abbreviation shown everywhere, in sync with the currency selectors)
     const curCode = settings.currency;
