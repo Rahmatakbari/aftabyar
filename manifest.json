@@ -1,0 +1,19 @@
+{
+  "name": "آفتاب‌یار | برآورد قیمت سیستم خورشیدی",
+  "short_name": "آفتاب‌یار",
+  "description": "ابزار برآورد و پیش‌فاکتور سیستم خورشیدی — کاملاً آفلاین",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#EFF2F0",
+  "theme_color": "#142C4C",
+  "dir": "rtl",
+  "lang": "fa",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-maskable-192.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
+    { "src": "icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
