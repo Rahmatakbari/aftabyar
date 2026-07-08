@@ -2,647 +2,206 @@
 <html lang="fa" dir="rtl">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#142C4C">
-<title>آفتاب‌یار | برآورد قیمت سیستم خورشیدی</title>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=5,viewport-fit=cover">
+<meta name="theme-color" content="#0F172A" media="(prefers-color-scheme:dark)">
+<meta name="theme-color" content="#FAFBFC" media="(prefers-color-scheme:light)">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>آفتاب‌یار</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
-<style>
-  :root{
-    --navy:#142C4C;
-    --navy-2:#1D3A61;
-    --turquoise:#1C9C90;
-    --turquoise-soft:#E4F4F2;
-    --gold:#E0A542;
-    --gold-soft:#FBEDD3;
-    --paper:#EFF2F0;
-    --card:#FFFFFF;
-    --ink:#1A2230;
-    --ink-soft:#5B6472;
-    --line:#DDE3E1;
-    --danger:#C0453B;
-    --radius:14px;
-    --shadow: 0 6px 24px rgba(20,44,76,0.08);
-    font-size: 16px;
-  }
-  *{box-sizing:border-box;}
-  html,body{margin:0;padding:0;}
-  body{
-    background:var(--paper);
-    color:var(--ink);
-    font-family: 'Vazirmatn','IRANSansWeb','Tahoma',sans-serif;
-    direction: rtl;
-    min-height:100vh;
-    -webkit-font-smoothing:antialiased;
-  }
-  .app{
-    max-width:1240px;
-    margin:0 auto;
-    padding: max(18px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) max(90px, calc(env(safe-area-inset-bottom) + 70px)) max(16px, env(safe-area-inset-left));
-  }
-  header.top{
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-    gap:12px;
-    padding: 10px 4px 22px;
-  }
-  .brand{
-    display:flex;
-    align-items:center;
-    gap:12px;
-  }
-  .brand .mark{
-    width:44px;height:44px;border-radius:12px;
-    background: radial-gradient(circle at 35% 30%, var(--gold), #c9821f 70%);
-    position:relative;
-    box-shadow: var(--shadow);
-    flex-shrink:0;
-  }
-  .brand .mark::after{
-    content:"";
-    position:absolute; inset:0;
-    border-radius:12px;
-    background: conic-gradient(from 0deg, transparent 0 92%, rgba(255,255,255,.55) 92% 100%);
-  }
-  .brand h1{
-    font-size:1.15rem;
-    margin:0;
-    letter-spacing:.2px;
-    color:var(--navy);
-  }
-  .brand p{
-    margin:2px 0 0;
-    font-size:.78rem;
-    color:var(--ink-soft);
-  }
-  .top-actions{display:flex; gap:8px;}
-  .icon-btn{
-    width:44px;height:44px;border-radius:10px;
-    border:1px solid var(--line);
-    background:var(--card);
-    display:flex;align-items:center;justify-content:center;
-    cursor:pointer;
-    font-size:1.05rem;
-    color:var(--navy);
-    transition: transform .12s ease, box-shadow .12s ease;
-  }
-  .icon-btn:hover{ box-shadow: var(--shadow); transform: translateY(-1px); }
-  .icon-btn:active{ transform: scale(.95); }
-
-  /* Currency selector — used in header, pricing section, and settings */
-  .currency-select{
-    -webkit-appearance:none; appearance:none;
-    width:auto !important;
-    height:44px;
-    padding: 0 30px 0 12px !important;
-    border-radius:10px;
-    border:1px solid var(--line);
-    background:var(--card) url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6'><path d='M0 0l5 6 5-6z' fill='%23142C4C'/></svg>") no-repeat left 10px center;
-    color:var(--navy);
-    font-weight:700;
-    font-size:.85rem !important;
-    cursor:pointer;
-  }
-  .currency-select.inline{ height:44px; width:100%!important; }
-  .currency-field{ margin-bottom:14px; }
-  .currency-field label{ display:block; font-size:.78rem; color:var(--ink-soft); margin-bottom:6px; }
-
-  /* System type — compact modern pill row, always one line on tablet+, wraps to 3 even columns on narrow phones */
-  .system-type-grid{
-    display:grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap:8px;
-  }
-  .system-card{
-    min-width:0;
-    min-height:44px;
-    border:1.5px solid var(--line);
-    border-radius:10px;
-    background:#fff;
-    padding:9px 4px;
-    text-align:center;
-    cursor:pointer;
-    display:flex; flex-direction:row; align-items:center; justify-content:center; gap:6px;
-    transition: border-color .12s ease, background .12s ease, transform .1s ease;
-  }
-  .system-card .ic{ font-size:1rem; line-height:1; flex-shrink:0; }
-  .system-card .lbl{ font-size:.78rem; font-weight:600; color:var(--ink); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-  .system-card .sub{ display:none; }
-  .system-card:hover{ border-color: var(--turquoise); }
-  .system-card:active{ transform: scale(.97); }
-  .system-card.active{
-    border-color: var(--turquoise);
-    background: var(--turquoise-soft);
-  }
-  .system-card.active .lbl{ color:var(--turquoise); }
-  @media (max-width: 360px){
-    .system-card .lbl{ font-size:.7rem; }
-    .system-card{ padding:8px 2px; }
-  }
-
-  .layout{
-    display:grid;
-    grid-template-columns: 1fr 1fr;
-    gap:20px;
-    align-items:start;
-  }
-  @media (max-width: 880px){
-    .layout{ grid-template-columns: 1fr; }
-    .pane.preview{ order:-1; }
-  }
-
-  .pane{
-    background:var(--card);
-    border-radius: var(--radius);
-    box-shadow: var(--shadow);
-    padding: 20px;
-  }
-  @media (max-width: 480px){
-    .pane{ padding:16px 14px; border-radius:12px; }
-    .app{ padding-left:10px; padding-right:10px; }
-  }
-  .pane h2{
-    font-size:1rem;
-    margin:0 0 14px;
-    color:var(--navy);
-    display:flex; align-items:center; gap:8px;
-  }
-  .pane h2 .eyebrow{
-    font-size:.7rem;
-    background:var(--turquoise-soft);
-    color:var(--turquoise);
-    padding:2px 8px;
-    border-radius:20px;
-    font-weight:600;
-  }
-
-  /* ---- Modern sectioned form cards ---- */
-  .section-card{
-    border:1px solid var(--line);
-    border-radius:12px;
-    padding:16px;
-    margin-bottom:14px;
-    border-inline-start:3px solid var(--turquoise);
-    background:#FCFDFD;
-  }
-  @media (max-width:480px){
-    .section-card{ padding:13px; }
-  }
-  .section-card:last-child{ margin-bottom:0; }
-  .section-card.accent-gold{ border-inline-start-color:var(--gold); }
-  .section-head{
-    display:flex; align-items:center; gap:10px;
-    margin-bottom:14px;
-  }
-  .section-head .num{
-    width:26px;height:26px;border-radius:8px;
-    background:var(--turquoise-soft);
-    color:var(--turquoise);
-    font-size:.78rem;font-weight:700;
-    display:flex;align-items:center;justify-content:center;
-    flex-shrink:0;
-  }
-  .section-card.accent-gold .section-head .num{ background:var(--gold-soft); color:#8a5c15; }
-  .section-head h3{
-    margin:0; font-size:.9rem; color:var(--navy); font-weight:600;
-  }
-
-  .field-group{ margin-bottom:18px; }
-  .field-group:last-child{ margin-bottom:0; }
-  .field-group legend, .field-label{
-    display:block;
-    font-size:.82rem;
-    color:var(--ink-soft);
-    margin-bottom:6px;
-  }
-  .row{ display:flex; gap:10px; }
-  .row > *{ flex:1; min-width:0; }
-  @media (max-width:400px){
-    .row{ flex-direction:column; }
-  }
-  input[type=text], input[type=number], input[type=tel], input[type=file], select, textarea{
-    width:100%;
-    padding: 11px 12px;
-    border-radius:10px;
-    border:1px solid var(--line);
-    background:#FBFCFB;
-    color:var(--ink);
-    font-family:inherit;
-    font-size:.92rem;
-    transition: border-color .12s ease, background .12s ease;
-    min-height:44px;
-  }
-  textarea{ resize:vertical; min-height:64px; }
-  input:focus, select:focus, textarea:focus{
-    outline:none;
-    border-color: var(--turquoise);
-    background:#fff;
-  }
-  input::placeholder, textarea::placeholder{ color:#9AA3AC; }
-
-  .segmented{
-    display:flex;
-    border:1px solid var(--line);
-    border-radius:10px;
-    overflow:hidden;
-  }
-  .segmented button{
-    flex:1;
-    border:none;
-    background:#FBFCFB;
-    padding:10px 6px;
-    font-family:inherit;
-    font-size:.85rem;
-    cursor:pointer;
-    color:var(--ink-soft);
-    border-inline-start:1px solid var(--line);
-  }
-  .segmented button:first-child{ border-inline-start:none; }
-  .segmented button.active{
-    background:var(--navy);
-    color:#fff;
-  }
-
-  .mode-tabs{ display:flex; gap:6px; margin-bottom:12px; flex-wrap:wrap; }
-  .mode-tabs button{
-    padding:8px 12px;
-    border-radius:20px;
-    border:1px solid var(--line);
-    background:#fff;
-    font-family:inherit;
-    font-size:.78rem;
-    cursor:pointer;
-    color:var(--ink-soft);
-    min-height:38px;
-  }
-  .mode-tabs button.active{
-    background:var(--gold-soft);
-    border-color:var(--gold);
-    color:#8a5c15;
-    font-weight:600;
-  }
-
-  .appliance-row{
-    display:grid;
-    grid-template-columns: 2fr 1fr 1fr 0.7fr 32px;
-    gap:6px;
-    margin-bottom:8px;
-    align-items:center;
-  }
-  .appliance-row input{ padding:8px 8px; font-size:.82rem; min-height:38px; }
-  .appliance-head{
-    display:grid;
-    grid-template-columns: 2fr 1fr 1fr 0.7fr 32px;
-    gap:6px;
-    margin-bottom:4px;
-  }
-  @media (max-width:420px){
-    .appliance-row, .appliance-head{
-      grid-template-columns: 1.6fr 1fr 1fr 0.8fr 26px;
-      gap:4px;
-    }
-    .appliance-row input{ padding:6px 4px; font-size:.72rem; }
-    .appliance-head .hint{ font-size:.62rem !important; }
-    .del-row{ width:24px; height:24px; font-size:.72rem; }
-  }
-  .del-row{
-    width:28px;height:28px;border-radius:8px;border:1px solid var(--line);
-    background:#fff; color:var(--danger); cursor:pointer; font-size:.85rem;
-  }
-  .add-row-btn{
-    width:100%;
-    padding:11px;
-    border-radius:10px;
-    border:1px dashed var(--turquoise);
-    background:var(--turquoise-soft);
-    color:var(--turquoise);
-    font-family:inherit;
-    font-size:.82rem;
-    cursor:pointer;
-    margin-top:2px;
-    min-height:44px;
-  }
-  .appliance-total{
-    text-align:left;
-    font-size:.8rem;
-    color:var(--ink-soft);
-    margin-top:8px;
-  }
-
-  .hint{ font-size:.74rem; color:#8A93A0; margin-top:5px; }
-
-  .divider{
-    height:1px;
-    background:var(--line);
-    margin: 18px 0;
-  }
-
-  /* --- Preview Pane --- */
-  .quote-brand{
-    display:flex; align-items:center; gap:10px; margin-bottom:12px;
-  }
-  .quote-brand img{
-    width:40px;height:40px;border-radius:8px;object-fit:contain;
-    border:1px solid var(--line); background:#fff; flex-shrink:0;
-  }
-  .quote-brand strong{ font-size:.92rem; color:var(--navy); }
-
-  .quote-meta{
-    display:flex; justify-content:space-between; align-items:baseline;
-    margin-bottom:14px;
-    font-size:.78rem;
-    color:var(--ink-soft);
-    flex-wrap:wrap;
-    gap:4px;
-  }
-  .gauge-wrap{
-    display:flex;
-    align-items:center;
-    gap:18px;
-    background: linear-gradient(135deg, var(--navy), var(--navy-2));
-    border-radius:12px;
-    padding:16px 18px;
-    color:#fff;
-    margin-bottom:18px;
-  }
-  .gauge-text{ flex:1; min-width:0; }
-  .gauge-text .big{
-    font-size:1.5rem;
-    font-weight:700;
-    color:var(--gold);
-  }
-  .gauge-text .label{
-    font-size:.76rem;
-    color:#C6D2E0;
-    margin-top:2px;
-  }
-  .cust-recap{
-    font-size:.85rem;
-    margin-bottom:14px;
-    color:var(--ink);
-  }
-  .cust-recap b{ color:var(--navy); }
-
-  .table-scroll{ overflow-x:auto; -webkit-overflow-scrolling:touch; margin-bottom:14px; }
-  table.quote-table{
-    width:100%;
-    min-width:420px;
-    border-collapse:collapse;
-    font-size:.83rem;
-  }
-  table.quote-table th{
-    text-align:right;
-    font-size:.72rem;
-    color:var(--ink-soft);
-    font-weight:600;
-    padding:6px 6px;
-    border-bottom:1px solid var(--line);
-    white-space:nowrap;
-  }
-  table.quote-table td{
-    padding:8px 6px;
-    border-bottom:1px solid var(--line);
-    vertical-align:top;
-  }
-  table.quote-table td.num, table.quote-table th.num{ text-align:left; white-space:nowrap; }
-
-  .manual-section{ margin-bottom:12px; }
-  .manual-section:last-child{ margin-bottom:0; }
-  .manual-section h4{
-    font-size:.82rem; margin:0 0 6px; color:var(--navy);
-    display:flex; align-items:center; gap:6px;
-  }
-  table.manual-table{ width:100%; border-collapse:collapse; font-size:.74rem; background:#fff; border:1px solid var(--line); border-radius:8px; overflow:hidden; }
-  table.manual-table th{ text-align:right; background:var(--turquoise-soft); color:var(--turquoise); font-weight:700; padding:6px 8px; width:26px; }
-  table.manual-table td{ padding:6px 8px; border-top:1px solid var(--line); line-height:1.6; direction:ltr; text-align:left; unicode-bidi:plaintext; }
-
-  .totals{ margin-top:8px; }
-  .totals .line{
-    display:flex; justify-content:space-between;
-    font-size:.85rem; padding:4px 0;
-    color:var(--ink-soft);
-  }
-  .totals .line.final{
-    margin-top:8px;
-    padding-top:10px;
-    border-top:2px solid var(--navy);
-    font-size:1.15rem;
-    font-weight:700;
-    color:var(--navy);
-  }
-  .totals .line.final b{ color:var(--gold); }
-
-  .actions{
-    display:flex; gap:10px; margin-top:18px; flex-wrap:wrap;
-  }
-  .btn{
-    flex:1 1 45%;
-    padding:12px;
-    border-radius:10px;
-    border:none;
-    font-family:inherit;
-    font-size:.86rem;
-    cursor:pointer;
-    display:flex; align-items:center; justify-content:center; gap:6px;
-    min-height:46px;
-  }
-  .btn.primary{ background:var(--navy); color:#fff; }
-  .btn.gold{ background:var(--gold); color:#3a2603; font-weight:700; }
-  .btn.ghost{ background:#fff; border:1px solid var(--line); color:var(--ink); }
-  .btn.whatsapp{ background:#25D366; color:#fff; }
-  .btn:active{ transform: scale(.98); }
-
-  /* Modal */
-  .modal-backdrop{
-    position:fixed; inset:0;
-    background:rgba(20,44,76,.45);
-    display:none;
-    align-items:flex-end;
-    justify-content:center;
-    z-index:50;
-  }
-  .modal-backdrop.open{ display:flex; }
-  .modal{
-    background:#fff;
-    width:100%;
-    max-width:520px;
-    max-height:88vh;
-    overflow:auto;
-    border-radius: 18px 18px 0 0;
-    padding:20px;
-    padding-bottom: max(20px, env(safe-area-inset-bottom));
-  }
-  @media (min-width:640px){
-    .modal-backdrop{ align-items:center; }
-    .modal{ border-radius:18px; }
-  }
-  .modal-head{
-    display:flex; justify-content:space-between; align-items:center;
-    margin-bottom:14px;
-  }
-  .modal-head h3{ margin:0; font-size:1rem; color:var(--navy); }
-  .close-x{
-    border:none; background:none; font-size:1.2rem; cursor:pointer; color:var(--ink-soft);
-    width:32px; height:32px;
-  }
-  .settings-grid{
-    display:grid; grid-template-columns:1fr 1fr; gap:12px;
-  }
-  @media (max-width:420px){
-    .settings-grid{ grid-template-columns:1fr; }
-  }
-  .settings-grid .full{ grid-column: 1/-1; }
-  .settings-grid label{ font-size:.78rem; color:var(--ink-soft); display:block; margin-bottom:4px;}
-
-  .logo-upload-row{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
-  .logo-preview{
-    width:56px;height:56px;border-radius:10px;
-    border:1px solid var(--line);
-    flex-shrink:0;
-    display:flex;align-items:center;justify-content:center;
-    overflow:hidden;
-    background:#fff;
-  }
-  .logo-preview.empty{ color:#9AA3AC; font-size:.62rem; text-align:center; padding:4px; }
-  .logo-preview img{ width:100%;height:100%;object-fit:contain; }
-
-  .history-item{
-    display:flex; justify-content:space-between; align-items:center;
-    padding:10px 4px; border-bottom:1px solid var(--line);
-    font-size:.85rem;
-    gap:8px;
-  }
-  .history-item span:first-child{ min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-  .history-item .h-actions{ flex-shrink:0; }
-  .history-item .h-actions button{
-    border:none; background:none; cursor:pointer; font-size:.9rem; margin-inline-start:8px;
-    width:32px; height:32px;
-  }
-  .empty{ text-align:center; color:var(--ink-soft); font-size:.85rem; padding:24px 0; }
-
-  .toast{
-    position:fixed; bottom:calc(18px + env(safe-area-inset-bottom)); left:50%; transform:translateX(-50%);
-    background:var(--navy); color:#fff; padding:10px 18px; border-radius:30px;
-    font-size:.82rem; box-shadow:var(--shadow); z-index:99;
-    opacity:0; pointer-events:none; transition:opacity .25s ease;
-    max-width:90vw; text-align:center;
-  }
-  .toast.show{ opacity:1; }
-
-  .offline-badge{
-    display:none;
-    position:fixed; top:calc(8px + env(safe-area-inset-top)); left:50%; transform:translateX(-50%);
-    background:var(--ink); color:#fff; padding:6px 14px; border-radius:20px;
-    font-size:.72rem; z-index:98; box-shadow:var(--shadow);
-  }
-  .offline-badge.show{ display:block; }
-
-  @media print{
-    body{ background:#fff; }
-    header.top, .pane.form, .actions, .top-actions{ display:none !important; }
-    .app{ padding:0; max-width:100%; }
-    .layout{ grid-template-columns:1fr; }
-    .pane.preview{ box-shadow:none; }
-  }
-
-  @media (prefers-reduced-motion: reduce){
-    *{ transition:none !important; }
-  }
-</style>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
-<div class="offline-badge" id="offlineBadge">📴 حالت آفلاین</div>
-<div class="app">
 
-  <header class="top">
+<!-- Splash -->
+<div class="splash" id="splash">
+  <div class="splash-inner">
+    <div class="splash-icon">☀</div>
+    <p>آفتاب‌یار</p>
+  </div>
+</div>
+
+<!-- Offline badge -->
+<div class="offline-badge" id="offlineBadge">آفلاین</div>
+
+<!-- ══════ HEADER ══════ -->
+<header class="app-header">
+  <div class="header-inner">
     <div class="brand">
-      <div class="mark"></div>
-      <div>
-        <h1>آفتاب‌یار</h1>
-        <p>ابزار برآورد و پیش‌فاکتور سیستم خورشیدی — کاملاً آفلاین</p>
+      <div class="brand-mark">☀</div>
+      <div class="brand-text"><h1 id="appTitle">آفتاب‌یار</h1></div>
+    </div>
+    <button class="menu-btn" id="menuBtn" aria-label="منو">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</header>
+
+<!-- Slide-out menu -->
+<div class="menu-overlay" id="menuOverlay"></div>
+<aside class="side-menu" id="sideMenu">
+  <div class="menu-head">
+    <h3 id="mMenu">منو</h3>
+    <button class="close-btn" id="closeMenuBtn" aria-label="بستن">✕</button>
+  </div>
+  <nav class="menu-nav">
+    <button class="menu-item" id="historyBtn">
+      <span class="mi-icon">🕘</span><span id="mHistory">تاریخچه پیش‌فاکتورها</span>
+    </button>
+    <button class="menu-item" id="settingsBtn">
+      <span class="mi-icon">⚙</span><span id="mSettings">تنظیمات</span>
+    </button>
+    <button class="menu-item" id="backupBtn">
+      <span class="mi-icon">💾</span><span id="mBackup">بک‌آپ / بازیابی</span>
+    </button>
+    <button class="menu-item" id="darkToggleBtn">
+      <span class="mi-icon" id="darkIcon">🌙</span><span id="darkLabel">حالت تاریک</span>
+    </button>
+    <div class="menu-divider"></div>
+    <div class="menu-field">
+      <label id="lblCurrency">واحد پول</label>
+      <select class="menu-select currency-sync" id="currencySelectHeader"></select>
+    </div>
+    <div class="menu-field">
+      <label id="lblLang">زبان</label>
+      <select class="menu-select" id="langSelect">
+        <option value="fa">دری / فارسی</option>
+        <option value="ps">پښتو</option>
+        <option value="en">English</option>
+      </select>
+    </div>
+  </nav>
+</aside>
+
+<!-- ══════ STATUS STRIP ══════ -->
+<div class="status-strip" id="statusBar">
+  <div class="status-inner">
+    <div class="s-chip"><span class="s-dot"></span><span id="statusKw">۰ kW</span></div>
+    <div class="s-chip"><span id="statusPanels">۰ پنل</span></div>
+    <div class="s-chip gold"><span id="statusTotal">—</span></div>
+  </div>
+  <div class="progress-line"><div id="progressBar" class="progress-fill"></div></div>
+</div>
+
+<!-- ══════ MAIN ══════ -->
+<main class="app-main" id="appMain">
+
+  <!-- §1 Customer -->
+  <section class="card" data-section="customer">
+    <button class="card-toggle" type="button" aria-expanded="true">
+      <div class="card-badge">👤</div>
+      <h3 id="sec1Title">اطلاعات مشتری</h3>
+      <span class="chevron">▾</span>
+    </button>
+    <div class="card-body open">
+      <div class="field-grid">
+        <div class="field">
+          <label for="custName" id="lblCustName">نام مشتری</label>
+          <input type="text" id="custName" placeholder="محمد احمدی" autocomplete="name">
+        </div>
+        <div class="field">
+          <label for="custPhone" id="lblCustPhone">شماره تماس</label>
+          <input type="tel" id="custPhone" placeholder="۰۷۹۳۱۲۳۴۵۶" autocomplete="tel" inputmode="tel">
+        </div>
+      </div>
+      <div class="field mt8">
+        <label for="custAddr" id="lblCustAddr">آدرس <span class="optional">(اختیاری)</span></label>
+        <input type="text" id="custAddr" placeholder="شهر، ناحیه، کوچه">
       </div>
     </div>
-    <div class="top-actions">
-      <select class="currency-select currency-sync" id="currencySelectHeader" title="واحد پول"></select>
-      <button class="icon-btn" id="historyBtn" title="تاریخچه پیش‌فاکتورها">🕘</button>
-      <button class="icon-btn" id="settingsBtn" title="تنظیمات قیمت‌ها">⚙️</button>
+  </section>
+
+  <!-- §2 System Type -->
+  <section class="card" data-section="system">
+    <button class="card-toggle" type="button" aria-expanded="true">
+      <div class="card-badge">⚡</div>
+      <h3 id="sec2Title">نوع سیستم</h3>
+      <span class="chevron">▾</span>
+    </button>
+    <div class="card-body open">
+      <div class="sys-grid" id="systemType">
+        <button type="button" class="sys-btn active" data-v="ongrid">
+          <div class="sys-icon">🔌</div>
+          <span class="sys-label" id="sysLblOngrid">متصل به شبکه</span>
+          <span class="sys-sub">On‑Grid</span>
+        </button>
+        <button type="button" class="sys-btn" data-v="offgrid">
+          <div class="sys-icon">🔋</div>
+          <span class="sys-label" id="sysLblOffgrid">مستقل</span>
+          <span class="sys-sub">Off‑Grid</span>
+        </button>
+        <button type="button" class="sys-btn" data-v="hybrid">
+          <div class="sys-icon">⚡</div>
+          <span class="sys-label" id="sysLblHybrid">هیبریدی</span>
+          <span class="sys-sub">Hybrid</span>
+        </button>
+      </div>
     </div>
-  </header>
+  </section>
 
-  <div class="layout">
-
-    <!-- FORM PANE -->
-    <section class="pane form">
-      <h2>مشخصات پروژه <span class="eyebrow">ورودی</span></h2>
-
-      <div class="section-card">
-        <div class="section-head"><span class="num">۱</span><h3>اطلاعات مشتری</h3></div>
-        <div class="row" style="margin-bottom:8px;">
-          <input type="text" id="custName" placeholder="نام مشتری" autocomplete="name">
-          <input type="tel" id="custPhone" placeholder="شماره تماس" autocomplete="tel" inputmode="tel">
-        </div>
-        <input type="text" id="custAddr" placeholder="آدرس (اختیاری)">
+  <!-- §3 Consumption -->
+  <section class="card" data-section="consumption">
+    <button class="card-toggle" type="button" aria-expanded="true">
+      <div class="card-badge">📊</div>
+      <h3 id="sec3Title">مصرف برق</h3>
+      <span class="chevron">▾</span>
+    </button>
+    <div class="card-body open">
+      <div class="tabs" id="consMode">
+        <button data-v="daily" class="active" id="consTabDaily">روزانه</button>
+        <button data-v="bill" id="consTabBill">قبض</button>
+        <button data-v="appliance" id="consTabAppliance">وسایل</button>
       </div>
-
-      <div class="section-card accent-gold">
-        <div class="section-head"><span class="num">۲</span><h3>نوع سیستم خورشیدی</h3></div>
-        <div class="system-type-grid" id="systemType">
-          <button type="button" class="system-card active" data-v="ongrid">
-            <span class="ic">🔌</span>
-            <span class="lbl">متصل به شبکه</span>
-            <span class="sub">On‑Grid</span>
-          </button>
-          <button type="button" class="system-card" data-v="offgrid">
-            <span class="ic">🔋</span>
-            <span class="lbl">مستقل</span>
-            <span class="sub">Off‑Grid</span>
-          </button>
-          <button type="button" class="system-card" data-v="hybrid">
-            <span class="ic">⚡</span>
-            <span class="lbl">هیبریدی</span>
-            <span class="sub">Hybrid</span>
-          </button>
-        </div>
-      </div>
-
-      <div class="section-card">
-        <div class="section-head"><span class="num">۳</span><h3>میزان مصرف برق</h3></div>
-        <div class="mode-tabs" id="consMode">
-          <button data-v="daily" class="active">مصرف روزانه</button>
-          <button data-v="bill">از روی قبض برق</button>
-          <button data-v="appliance">لیست وسایل مصرفی</button>
-        </div>
-
-        <div id="cons-daily">
-          <input type="number" id="dailyKwh" placeholder="مصرف روزانه (کیلووات ساعت)" min="0" step="0.1" value="8" inputmode="decimal">
-        </div>
-
-        <div id="cons-bill" style="display:none;">
-          <input type="number" id="monthlyKwh" placeholder="مصرف ماهانه طبق قبض (کیلووات ساعت)" min="0" step="1" value="240" inputmode="decimal">
-          <p class="hint">مصرف روزانه به‌صورت خودکار از تقسیم بر ۳۰ محاسبه می‌شود.</p>
-        </div>
-
-        <div id="cons-appliance" style="display:none;">
-          <div class="appliance-head">
-            <span class="hint" style="margin:0;">نام وسیله</span>
-            <span class="hint" style="margin:0;">وات</span>
-            <span class="hint" style="margin:0;">ساعت/روز</span>
-            <span class="hint" style="margin:0;">تعداد</span>
-            <span></span>
+      <div id="cons-daily">
+        <div class="field">
+          <label for="dailyKwh" id="lblDailyKwh">مصرف روزانه</label>
+          <div class="input-unit">
+            <input type="number" id="dailyKwh" min="0" step="0.1" value="8" inputmode="decimal">
+            <span class="unit">kWh</span>
           </div>
-          <div id="applianceRows"></div>
-          <button class="add-row-btn" id="addApplianceBtn">+ افزودن وسیله مصرفی</button>
-          <div class="appliance-total" id="applianceTotal"></div>
+        </div>
+        <div class="slider-wrap">
+          <input type="range" id="dailyKwhSlider" min="1" max="50" step="0.5" value="8" class="range-slider">
+          <div class="slider-labels"><span>۱</span><span>۲۵</span><span>۵۰</span></div>
         </div>
       </div>
+      <div id="cons-bill" style="display:none;">
+        <div class="field">
+          <label for="monthlyKwh" id="lblMonthlyKwh">مصرف ماهانه</label>
+          <div class="input-unit">
+            <input type="number" id="monthlyKwh" min="0" step="1" value="240" inputmode="decimal">
+            <span class="unit">kWh</span>
+          </div>
+        </div>
+        <p class="note" id="noteBill">تقسیم بر ۳۰ = مصرف روزانه</p>
+      </div>
+      <div id="cons-appliance" style="display:none;">
+        <div id="applianceRows" class="appliance-list"></div>
+        <button class="add-btn" id="addApplianceBtn" type="button">
+          <span>+</span> <span id="btnAddApp">افزودن وسیله</span>
+        </button>
+      </div>
+    </div>
+  </section>
 
-      <div class="section-card accent-gold">
-        <div class="section-head"><span class="num">۴</span><h3>ساعت آفتاب معادل منطقه</h3></div>
-        <div class="row">
+  <!-- §4 Sun -->
+  <section class="card" data-section="sun">
+    <button class="card-toggle" type="button" aria-expanded="false">
+      <div class="card-badge">☀</div>
+      <h3 id="sec4Title">آفتاب و سایه</h3>
+      <span class="chevron">▾</span>
+    </button>
+    <div class="card-body">
+      <div class="field-grid">
+        <div class="field">
+          <label for="cityPreset" id="lblCity">شهر</label>
           <select id="cityPreset">
-            <option value="">انتخاب شهر (اختیاری)</option>
+            <option value="">انتخاب شهر</option>
             <option value="5.5">کابل — ۵.۵</option>
             <option value="5.6">هرات — ۵.۶</option>
             <option value="6.0">قندهار — ۶.۰</option>
@@ -650,1420 +209,427 @@
             <option value="5.3">جلال‌آباد — ۵.۳</option>
             <option value="5.1">کندز — ۵.۱</option>
             <option value="5.7">بامیان — ۵.۷</option>
-            <option value="5.6">غزنی — ۵.۶</option>
-            <option value="6.0">لشکرگاه — ۶.۰</option>
           </select>
-          <input type="number" id="sunHours" min="1" max="9" step="0.1" value="5.5" inputmode="decimal">
         </div>
-        <p class="hint">میانگین ساعات تابش مؤثر آفتاب در روز برای منطقه نصب.</p>
-      </div>
-
-      <div class="section-card" id="batteryFields" style="display:none;">
-        <div class="section-head"><span class="num">۵</span><h3>مشخصات باتری (آف‌گرید / هیبریدی)</h3></div>
-        <div class="field-group">
-          <div class="row" style="margin-bottom:8px;">
-            <div>
-              <label class="hint">روزهای استقلال از شبکه</label>
-              <input type="number" id="autonomyDays" min="0.5" step="0.5" value="1" inputmode="decimal">
-            </div>
-            <div>
-              <label class="hint">ولتاژ سیستم باتری</label>
-              <select id="batteryVoltage">
-                <option value="12">۱۲ ولت</option>
-                <option value="24" selected>۲۴ ولت</option>
-                <option value="48">۴۸ ولت</option>
-              </select>
-            </div>
+        <div class="field">
+          <label for="sunHours" id="lblSunH">ساعت آفتاب</label>
+          <div class="input-unit">
+            <input type="number" id="sunHours" min="1" max="9" step="0.1" value="5.5" inputmode="decimal">
+            <span class="unit">h</span>
           </div>
-          <label class="hint">نوع باتری</label>
-          <select id="batteryType">
-            <option value="lithium">لیتیومی (DoD بالا)</option>
-            <option value="dry">خشک / سیل‌شده AGM (DoD متوسط)</option>
-            <option value="lead">سرب-اسیدی تر (DoD پایین)</option>
-          </select>
-          <div class="row" style="margin-top:10px;">
-            <div>
-              <label class="hint">ولتاژ هر باتری (واحد)</label>
-              <select id="batteryUnitVoltage">
-                <option value="12" selected>۱۲ ولت</option>
-                <option value="24">۲۴ ولت</option>
-                <option value="48">۴۸ ولت</option>
-              </select>
-            </div>
-            <div>
-              <label class="hint">ظرفیت هر باتری (آمپرساعت)</label>
-              <input type="number" id="batteryUnitAh" min="0" step="10" placeholder="مثلاً ۱۰۰" inputmode="decimal">
-            </div>
-          </div>
-          <div style="margin-top:8px;">
-            <label class="hint">تعداد باتری (اختیاری — اگر خالی بماند خودکار محاسبه می‌شود)</label>
-            <input type="number" id="batteryCount" min="0" step="1" placeholder="مثلاً ۴" inputmode="numeric">
-          </div>
-        </div>
-        <div class="field-group" style="margin-bottom:0;">
-          <label class="field-label">حداکثر توان لحظه‌ای مصرف (وات) — برای سایز اینورتر</label>
-          <input type="number" id="peakPower" min="0" step="100" placeholder="مثلاً ۲۰۰۰" inputmode="decimal">
-          <p class="hint">اگر خالی بماند، به‌صورت تقریبی از مصرف روزانه محاسبه می‌شود.</p>
         </div>
       </div>
-
-      <div class="section-card accent-gold">
-        <div class="section-head"><span class="num">۶</span><h3>توان هر پنل خورشیدی</h3></div>
-        <select id="panelWatt">
-          <option value="400">۴۰۰ وات — Vmp ۳۷.۱ ولت / Imp ۱۰.۸ آمپر</option>
-          <option value="450">۴۵۰ وات — Vmp ۴۱.۴ ولت / Imp ۱۰.۹ آمپر</option>
-          <option value="500">۵۰۰ وات — Vmp ۴۱.۷ ولت / Imp ۱۲.۰ آمپر</option>
-          <option value="550" selected>۵۵۰ وات — Vmp ۴۱.۷ ولت / Imp ۱۳.۲ آمپر</option>
-          <option value="600">۶۰۰ وات — Vmp ۴۵.۵ ولت / Imp ۱۳.۲ آمپر</option>
-          <option value="650">۶۵۰ وات — Vmp ۴۶.۹ ولت / Imp ۱۳.۹ آمپر</option>
-          <option value="700">۷۰۰ وات — Vmp ۳۸.۷ ولت / Imp ۱۸.۱ آمپر</option>
+      <div class="field mt8">
+        <label for="shadingLevel" id="lblShade">وضعیت سایه</label>
+        <select id="shadingLevel">
+          <option value="none" id="shNone">بدون سایه</option>
+          <option value="partial" id="shPart">جزئی</option>
+          <option value="significant" id="shSig">زیاد</option>
         </select>
-        <p class="hint">مقادیر Vmp/Imp میانگین تقریبی از دیتاشیت پنل‌های رایج بازار است و بسته به برند دقیق متفاوت خواهد بود.</p>
+      </div>
+      <input type="hidden" id="latManual">
+    </div>
+  </section>
+
+  <!-- §5 Battery -->
+  <section class="card" id="batteryFields" style="display:none;" data-section="battery">
+    <button class="card-toggle" type="button" aria-expanded="false">
+      <div class="card-badge">🔋</div>
+      <h3 id="sec5Title">باتری</h3>
+      <span class="chevron">▾</span>
+    </button>
+    <div class="card-body">
+      <div class="field-grid">
+        <div class="field">
+          <label for="autonomyDays" id="lblAutonomy">روزهای استقلال</label>
+          <input type="number" id="autonomyDays" min="0.5" step="0.5" value="1" inputmode="decimal">
+        </div>
+        <div class="field">
+          <label id="lblSysV">ولتاژ سیستم <span id="voltageAutoTag" class="auto-tag"></span></label>
+          <select id="batteryVoltage">
+            <option value="12">۱۲V</option><option value="24" selected>۲۴V</option><option value="48">۴۸V</option>
+          </select>
+        </div>
+      </div>
+      <p class="note" id="voltageRecommendNote"></p>
+      <div class="field mt8">
+        <label for="batteryType" id="lblBattType">نوع باتری</label>
+        <select id="batteryType">
+          <option value="lithium">LiFePO₄ (DoD ۹۰٪)</option>
+          <option value="li-ion">Li-ion (DoD ۸۵٪)</option>
+          <option value="gel">Gel (DoD ۶۰٪)</option>
+          <option value="dry">AGM (DoD ۵۰٪)</option>
+          <option value="lead">Lead-Acid (DoD ۴۵٪)</option>
+        </select>
+      </div>
+      <div class="field-grid mt8">
+        <div class="field">
+          <label id="lblPackV">ولتاژ باتری <span id="packAutoTag" class="auto-tag"></span></label>
+          <select id="batteryUnitVoltage">
+            <option value="12" selected>۱۲V</option><option value="24">۲۴V</option><option value="48">۴۸V</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="batteryUnitAh" id="lblBattAh">ظرفیت (Ah)</label>
+          <input type="number" id="batteryUnitAh" min="0" step="10" placeholder="۱۰۰" inputmode="decimal">
+        </div>
+      </div>
+      <div class="field mt8">
+        <label for="batteryCount" id="lblBattCnt">تعداد باتری</label>
+        <input type="number" id="batteryCount" min="0" step="1" placeholder="خودکار" inputmode="numeric">
+      </div>
+      <p class="note" id="packRecommendNote"></p>
+      <button type="button" class="link-btn" id="resetAutoBtn">↺ <span id="btnAutoRec">پیشنهاد خودکار</span></button>
+      <div class="field mt12">
+        <label for="peakPower" id="lblPeak">حداکثر توان لحظه‌ای</label>
+        <div class="input-unit">
+          <input type="number" id="peakPower" min="0" step="100" placeholder="۲۰۰۰" inputmode="decimal">
+          <span class="unit">W</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- §6 Panel -->
+  <section class="card" data-section="panel">
+    <button class="card-toggle" type="button" aria-expanded="false">
+      <div class="card-badge">🔆</div>
+      <h3 id="sec6Title">پنل خورشیدی</h3>
+      <span class="chevron">▾</span>
+    </button>
+    <div class="card-body">
+      <div class="field">
+        <label for="panelWatt" id="lblPanelW">توان پنل</label>
+        <select id="panelWatt">
+          <option value="400">۴۰۰W</option><option value="450">۴۵۰W</option><option value="500">۵۰۰W</option>
+          <option value="550" selected>۵۵۰W</option><option value="600">۶۰۰W</option>
+          <option value="650">۶۵۰W</option><option value="700">۷۰۰W</option>
+        </select>
+      </div>
+      <div class="field mt8">
+        <label for="panelType" id="lblPanelT">تکنولوژی</label>
+        <select id="panelType">
+          <option value="mono">Mono PERC</option>
+          <option value="topcon">TOPCon</option>
+          <option value="hjt">HJT</option>
+          <option value="bifacial">Bifacial</option>
+        </select>
+      </div>
+    </div>
+  </section>
+
+  <!-- §7 Pricing -->
+  <section class="card" data-section="pricing">
+    <button class="card-toggle" type="button" aria-expanded="true">
+      <div class="card-badge">💰</div>
+      <h3 id="sec7Title">قیمت‌گذاری</h3>
+      <span class="chevron">▾</span>
+    </button>
+    <div class="card-body open">
+      <div class="field">
+        <label id="lblCurP">واحد پول</label>
+        <select class="currency-sync" id="currencySelectPricing"></select>
       </div>
 
-      <div class="section-card accent-gold" id="pricingCard">
-        <div class="section-head"><span class="num">۷</span><h3>قیمت‌گذاری تجهیزات این پیش‌فاکتور</h3></div>
-        <div class="currency-field">
-          <label>واحد پول این پیش‌فاکتور</label>
-          <select class="currency-select currency-sync inline" id="currencySelectPricing"></select>
+      <div class="field mt8">
+        <label id="lblInvP">قیمت اینورتر</label>
+        <input type="number" id="priceInverterManual" min="0" step="100" placeholder="قیمت اینورتر" inputmode="decimal">
+      </div>
+      <div class="field mt8">
+        <label id="lblInvPres">مدل رایج</label>
+        <select id="inverterPreset"><option value="">— دستی —</option></select>
+        <p class="note" id="inverterPresetHint">مشخصات میانگین — قبل از خرید دیتاشیت چک کنید.</p>
+      </div>
+      <div class="field mt8">
+        <label id="lblInvMod">مدل اینورتر</label>
+        <input type="text" id="inverterModel" placeholder="Growatt 5kW">
+      </div>
+      <div id="inverterCompatBox" style="display:none;margin-top:6px;"></div>
+
+      <input type="file" id="manualUpload" accept="application/pdf,.pdf" style="display:none;">
+      <button type="button" class="add-btn mt8" id="manualUploadBtn">📄 <span id="btnUpload">آپلود یوزر منوال (PDF)</span></button>
+      <div id="manualStatus" class="note"></div>
+
+      <div id="batteryPriceWrap" style="display:none;margin-top:8px;">
+        <div class="field">
+          <label id="lblBatP">قیمت باتری</label>
+          <input type="number" id="priceBatteryManual" min="0" step="100" placeholder="قیمت باتری" inputmode="decimal">
         </div>
-        <div class="field-group">
-          <label class="field-label" id="lblInverterPrice">قیمت اینورتر (AFN)</label>
-          <input type="number" id="priceInverterManual" min="0" step="100" placeholder="قیمت اینورتر را وارد کنید" inputmode="decimal">
+      </div>
+      <div id="controllerPriceWrap" style="display:none;margin-top:8px;">
+        <div class="field">
+          <label id="lblCtrlP">قیمت شارژ کنترلر</label>
+          <input type="number" id="priceControllerManual" min="0" step="100" placeholder="قیمت" inputmode="decimal">
         </div>
-        <div class="field-group">
-          <label class="field-label">مدل / برند اینورتر (اختیاری)</label>
-          <input type="text" id="inverterModel" placeholder="مثلاً: Growatt 5kW یا Deye SUN-5K-SG04LP1">
-        </div>
-        <div class="field-group">
-          <label class="field-label">یوزر منوال اینورتر (PDF)</label>
-          <input type="file" id="manualUpload" accept="application/pdf,.pdf" style="display:none;">
-          <button type="button" class="btn ghost" id="manualUploadBtn" style="width:100%;">📄 آپلود یوزر منوال (PDF)</button>
-          <div id="manualStatus" class="hint" style="margin-top:6px;"></div>
-        </div>
-        <div class="field-group" id="batteryPriceWrap" style="display:none;">
-          <label class="field-label" id="lblBatteryPrice">قیمت باتری (AFN)</label>
-          <input type="number" id="priceBatteryManual" min="0" step="100" placeholder="قیمت باتری را وارد کنید" inputmode="decimal">
-        </div>
-        <div class="field-group" id="controllerPriceWrap" style="display:none;">
-          <label class="field-label" id="lblControllerPrice">قیمت شارژ کنترلر جداگانه (AFN) — فقط برای آف‌گرید بدون اینورتر هیبریدی</label>
-          <input type="number" id="priceControllerManual" min="0" step="100" placeholder="اگر شارژ کنترلر جدا از اینورتر خریداری می‌شود وارد کنید" inputmode="decimal">
-          <p class="hint">اگر از اینورتر هیبریدی با MPPT داخلی استفاده می‌کنید، این فیلد را خالی بگذارید.</p>
-        </div>
-        <div class="field-group" style="margin-bottom:0;">
-          <label class="field-label">یادداشت و شرایط نصب برای نصاب (اختیاری)</label>
-          <textarea id="installerNotes" rows="3" placeholder="مثلاً: کابل بین باتری و اینورتر باید کوتاه‌ترین مسیر ممکن باشد؛ محل نصب اینورتر باید خنک و دارای تهویه باشد؛ ارت مجزا الزامی است..."></textarea>
-        </div>
-        <p class="hint">قیمت پنل خودکار از تنظیمات (⚙️) محاسبه می‌شود؛ قیمت اینورتر، باتری و شارژ کنترلر را چون بسته به مدل و تامین‌کننده هر بار فرق دارد، خودتان اینجا وارد می‌کنید. تغییر واحد پول همه‌جای پیش‌فاکتور را به‌روز می‌کند.</p>
       </div>
 
-      <div class="section-card" id="cablingCard">
-        <div class="section-head"><span class="num">۸</span><h3>بسته‌بندی پنل/باتری، شارژ کنترلر و کابل‌کشی DC</h3></div>
-        <div id="packagingResults" style="font-size:.83rem; line-height:2; margin-bottom:12px;"></div>
-        <div id="controllerResults" style="font-size:.83rem; line-height:2; margin-bottom:12px;"></div>
-        <div class="row" style="margin-bottom:8px;">
-          <div>
-            <label class="hint">طول کابل پنل تا اینورتر/کنترلر (متر)</label>
+      <!-- Warranty + Payment terms (new) -->
+      <div class="field mt10">
+        <label id="lblWarranty">گارانتی (سال)</label>
+        <div class="input-unit">
+          <input type="number" id="warrantyYears" min="0" step="1" value="5" inputmode="numeric">
+          <span class="unit">سال</span>
+        </div>
+      </div>
+      <div class="field mt8">
+        <label id="lblPayTerms">شرایط پرداخت</label>
+        <select id="paymentTerms">
+          <option value="full" id="payFull">نقدی (۱۰۰٪ پیش‌پرداخت)</option>
+          <option value="split50" id="pay50">۵۰٪ پیش، ۵۰٪ هنگام تحویل</option>
+          <option value="split30" id="pay30">۳۰٪ پیش، ۷۰٪ اقساط ۳ ماهه</option>
+          <option value="install6" id="pay6">اقساط ۶ ماهه</option>
+          <option value="install12" id="pay12">اقساط ۱۲ ماهه</option>
+          <option value="custom" id="payCustom">سفارشی</option>
+        </select>
+      </div>
+      <div class="field mt8" id="payCustomWrap" style="display:none;">
+        <label id="lblPayCustom">شرح پرداخت سفارشی</label>
+        <textarea id="paymentCustom" rows="2" placeholder="شرایط پرداخت دلخواه..."></textarea>
+      </div>
+      <div class="field mt8">
+        <label id="lblElecRate">نرخ برق شهری (برای ROI)</label>
+        <div class="input-unit">
+          <input type="number" id="elecRate" min="0" step="0.1" value="8" inputmode="decimal">
+          <span class="unit" id="elecRateUnit">AFN/kWh</span>
+        </div>
+      </div>
+      <div class="field mt8">
+        <label id="lblInstall">یادداشت نصب</label>
+        <textarea id="installerNotes" rows="2" placeholder="شرایط و یادداشت نصب..."></textarea>
+      </div>
+    </div>
+  </section>
+
+  <!-- §8 Wiring -->
+  <section class="card" data-section="wiring">
+    <button class="card-toggle" type="button" aria-expanded="false">
+      <div class="card-badge">🔗</div>
+      <h3 id="sec8Title">کابل‌کشی</h3>
+      <span class="chevron">▾</span>
+    </button>
+    <div class="card-body">
+      <div id="packagingResults" class="results-block"></div>
+      <div id="controllerResults" class="results-block"></div>
+      <div class="field-grid mt8">
+        <div class="field">
+          <label id="lblLenP">کابل پنل</label>
+          <div class="input-unit">
             <input type="number" id="cableLenPanel" min="1" step="1" value="15" inputmode="decimal">
-          </div>
-          <div>
-            <label class="hint">طول کابل باتری تا اینورتر (متر)</label>
-            <input type="number" id="cableLenBattery" min="0.5" step="0.5" value="2" inputmode="decimal">
+            <span class="unit">m</span>
           </div>
         </div>
-        <div id="cablingResults" style="font-size:.83rem; line-height:2;"></div>
-        <p class="hint">⚠️ این یک برآورد اولیه استاندارد بر اساس جریان مجاز و افت ولتاژ است؛ طراحی نهایی و پیکربندی رشته‌های پنل و باتری را حتماً با یک برق‌کار/طراح مجاز تایید کنید.</p>
+        <div class="field">
+          <label id="lblLenB">کابل باتری</label>
+          <div class="input-unit">
+            <input type="number" id="cableLenBattery" min="0.5" step="0.5" value="2" inputmode="decimal">
+            <span class="unit">m</span>
+          </div>
+        </div>
       </div>
+      <div id="cablingResults" class="results-block"></div>
+    </div>
+  </section>
 
-      <div class="section-card accent-gold" id="protectionCard">
-        <div class="section-head"><span class="num">۹</span><h3>حفاظت الکتریکی: بریکر (MCB) و فیوز</h3></div>
-        <div id="protectionResults" style="font-size:.83rem; line-height:2;"></div>
-        <p class="hint">⚠️ آمپراژ بریکر/فیوز بر اساس جریان طراحی با ضریب ایمنی محاسبه شده و باید توسط برق‌کار مجاز با مشخصات دقیق تجهیزات نهایی تایید شود. همیشه بریکر/فیوز روی سیم مثبت (+) نصب می‌شود، نه روی منفی یا ارت.</p>
+  <!-- §9 Protection -->
+  <section class="card" data-section="protection">
+    <button class="card-toggle" type="button" aria-expanded="false">
+      <div class="card-badge">🛡</div>
+      <h3 id="sec9Title">بریکر و فیوز</h3>
+      <span class="chevron">▾</span>
+    </button>
+    <div class="card-body">
+      <div id="protectionResults" class="results-block"></div>
+    </div>
+  </section>
+
+  <!-- ══════ QUOTE ══════ -->
+  <section class="card quote-card" data-section="quote">
+    <div class="quote-top">
+      <div class="quote-top-inner">
+        <h3 id="previewPaneTitleText">پیش‌فاکتور</h3>
+        <span class="quote-badge" id="quoteNo">#۱</span>
       </div>
-    </section>
-
-    <!-- PREVIEW PANE -->
-    <section class="pane preview">
-      <h2>پیش‌فاکتور <span class="eyebrow" id="quoteNo">#۱</span></h2>
-
+    </div>
+    <div class="quote-body">
       <div class="quote-brand" id="quoteBrand" style="display:none;">
-        <img id="quoteBrandLogo" alt="لوگو" style="display:none;">
+        <img id="quoteBrandLogo" alt="logo" style="display:none;">
         <strong id="quoteBrandName"></strong>
       </div>
-
       <div class="quote-meta">
         <span id="quoteDate"></span>
         <span id="quoteSystemLabel"></span>
       </div>
 
-      <div class="gauge-wrap">
-        <svg id="gaugeSvg" width="86" height="86" viewBox="0 0 86 86" style="flex-shrink:0;">
-          <circle cx="43" cy="43" r="36" fill="none" stroke="rgba(255,255,255,.15)" stroke-width="8"/>
-          <circle id="gaugeArc" cx="43" cy="43" r="36" fill="none" stroke="#E0A542" stroke-width="8"
-            stroke-linecap="round" stroke-dasharray="226" stroke-dashoffset="226"
-            transform="rotate(-90 43 43)"/>
-          <text id="gaugePct" x="43" y="48" text-anchor="middle" font-size="18" fill="#fff" font-family="inherit">۰٪</text>
-        </svg>
-        <div class="gauge-text">
-          <div class="big" id="gaugeCapacity">۰ کیلووات</div>
-          <div class="label" id="gaugeLabel">ظرفیت پیشنهادی سامانه خورشیدی</div>
+      <div class="gauge-card">
+        <div class="gauge-ring">
+          <svg width="76" height="76" viewBox="0 0 86 86">
+            <circle cx="43" cy="43" r="36" fill="none" stroke="rgba(255,255,255,.12)" stroke-width="7"/>
+            <circle id="gaugeArc" cx="43" cy="43" r="36" fill="none" stroke="#F59E0B" stroke-width="7"
+              stroke-linecap="round" stroke-dasharray="226" stroke-dashoffset="226"
+              transform="rotate(-90 43 43)" style="transition:stroke-dashoffset .6s ease;"/>
+            <text id="gaugePct" x="43" y="48" text-anchor="middle" font-size="15" fill="#fff" font-weight="700" font-family="Vazirmatn,sans-serif">۰٪</text>
+          </svg>
+        </div>
+        <div class="gauge-info">
+          <div class="gauge-kw" id="gaugeCapacity">۰ kW</div>
+          <div class="gauge-label" id="gaugeLabel">ظرفیت سامانه</div>
         </div>
       </div>
 
+      <div id="recommendBanner" class="rec-banner"></div>
       <div class="cust-recap" id="custRecap"></div>
+      <div id="consumptionChartBox"></div>
+      <div id="diagramBox"></div>
+      <div id="quoteItems"></div>
+      <div class="totals-card" id="totalsBox"></div>
 
-      <div id="diagramBox" style="margin-bottom:16px;"></div>
+      <!-- ROI Card (new) -->
+      <div id="roiBox"></div>
 
-      <div class="table-scroll">
-        <table class="quote-table">
-          <thead>
-            <tr><th>شرح</th><th class="num">تعداد</th><th class="num" id="thUnitPrice">قیمت واحد (افغانی)</th><th class="num" id="thTotalPrice">قیمت کل (افغانی)</th></tr>
-          </thead>
-          <tbody id="quoteBody"></tbody>
-        </table>
-      </div>
+      <!-- Warranty & Payment Terms (new) -->
+      <div id="termsBox"></div>
 
-      <div class="totals" id="totalsBox"></div>
-
-      <div id="installerNotesBox" style="display:none; margin-top:14px; padding:12px 14px; background:var(--gold-soft); border-radius:10px; font-size:.8rem; color:#5a4315; line-height:1.8;"></div>
-
-      <div id="manualExtractBox" style="display:none; margin-top:14px;"></div>
-
-      <div class="actions">
-        <button class="btn ghost" id="clearBtn">پاک کردن</button>
-        <button class="btn whatsapp" id="whatsappBtn">📱 واتساپ</button>
-        <button class="btn primary" id="saveBtn">ذخیره در تاریخچه</button>
-        <button class="btn gold" id="printBtn">چاپ / خروجی PDF</button>
-      </div>
-    </section>
-
-  </div>
-</div>
-
-<!-- SETTINGS MODAL -->
-<div class="modal-backdrop" id="settingsModal">
-  <div class="modal">
-    <div class="modal-head">
-      <h3>تنظیمات قیمت و ضرایب</h3>
-      <button class="close-x" data-close="settingsModal">✕</button>
+      <div id="installerNotesBox" class="notes-box" style="display:none;"></div>
+      <div id="manualExtractBox" style="display:none;"></div>
     </div>
-    <div class="settings-grid">
-      <div class="full">
-        <label>لوگوی کسب‌وکار (روی پیش‌فاکتور نمایش داده می‌شود)</label>
-        <div class="logo-upload-row">
+  </section>
+
+</main>
+
+<!-- FAB -->
+<button class="fab" id="scrollTopBtn" aria-label="بالا">↑</button>
+
+<!-- Bottom Nav -->
+<nav class="bottom-nav">
+  <div class="bnav-inner">
+    <button class="bnav-btn" id="clearBtn">
+      <span class="bn-icon">🗑</span><span id="navClear">پاک</span>
+    </button>
+    <button class="bnav-btn green" id="whatsappBtn">
+      <span class="bn-icon">💬</span><span id="navWa">واتساپ</span>
+    </button>
+    <button class="bnav-btn primary" id="saveBtn">
+      <span class="bn-icon">💾</span><span id="navSave">ذخیره</span>
+    </button>
+    <button class="bnav-btn amber" id="printBtn">
+      <span class="bn-icon">🖨</span><span id="navPdf">PDF</span>
+    </button>
+  </div>
+</nav>
+
+<!-- Settings Sheet -->
+<div class="sheet-backdrop" id="settingsModal" role="dialog" aria-hidden="true">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-head">
+      <h3 id="settingsModalTitle">تنظیمات</h3>
+      <button class="close-btn" data-close="settingsModal">✕</button>
+    </div>
+    <div class="sheet-body">
+      <div class="field">
+        <label id="lblLogo">لوگوی کسب‌وکار</label>
+        <div class="logo-row">
           <div class="logo-preview empty" id="logoPreview">بدون لوگو</div>
-          <input type="file" id="logoUpload" accept="image/*" style="flex:1;">
-          <button class="icon-btn" id="removeLogoBtn" type="button" title="حذف لوگو">✕</button>
+          <input type="file" id="logoUpload" accept="image/*">
+          <button class="icon-btn-sm" id="removeLogoBtn" type="button">✕</button>
         </div>
       </div>
-      <div class="full">
-        <label>واحد پول</label>
-        <select class="currency-select currency-sync inline" id="currencySelectSettings"></select>
-        <p class="hint">هر واحد پول قیمت پنل مستقل خودش را دارد — هیچ تبدیلی انجام نمی‌شود. با تغییر واحد پول از هر جای برنامه، همه‌جا (پیش‌فاکتور، جدول قیمت، واتساپ) به‌روز می‌شود.</p>
+      <div class="field mt10">
+        <label id="lblCurS">واحد پول</label>
+        <select class="currency-sync" id="currencySelectSettings"></select>
       </div>
-      <div class="full"><label id="lblPanelPrice">قیمت هر وات پنل خورشیدی (AFN)</label><input type="number" id="pricePanelPerWatt" step="0.01" inputmode="decimal"></div>
-      <div class="full"><label>نام کسب‌وکار (روی پیش‌فاکتور نمایش داده می‌شود)</label><input type="text" id="bizName" placeholder="مثلاً: خورشید تابان"></div>
-    </div>
-    <div class="actions" style="margin-top:18px;">
-      <button class="btn ghost" id="resetSettingsBtn">مقادیر پیش‌فرض</button>
-      <button class="btn primary" id="saveSettingsBtn">ذخیره تنظیمات</button>
+      <div class="field mt10">
+        <label id="lblPanelPriceS">قیمت هر وات پنل</label>
+        <input type="number" id="pricePanelPerWatt" step="0.01" inputmode="decimal">
+      </div>
+      <div class="field mt10">
+        <label id="lblBizName">نام کسب‌وکار</label>
+        <input type="text" id="bizName" placeholder="خورشید تابان">
+      </div>
+      <div class="sheet-actions">
+        <button class="btn ghost" id="resetSettingsBtn" type="button"><span id="btnDef">پیش‌فرض</span></button>
+        <button class="btn solid primary" id="saveSettingsBtn" type="button"><span id="btnSave">ذخیره</span></button>
+      </div>
     </div>
   </div>
 </div>
 
-<!-- HISTORY MODAL -->
-<div class="modal-backdrop" id="historyModal">
-  <div class="modal">
-    <div class="modal-head">
-      <h3>تاریخچه پیش‌فاکتورها</h3>
-      <button class="close-x" data-close="historyModal">✕</button>
+<!-- History Sheet (with search+filter) -->
+<div class="sheet-backdrop" id="historyModal" role="dialog" aria-hidden="true">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-head">
+      <h3 id="historyModalTitle">تاریخچه</h3>
+      <button class="close-btn" data-close="historyModal">✕</button>
     </div>
-    <div id="historyList"></div>
+    <div class="sheet-body">
+      <div class="hist-search">
+        <input type="search" id="histSearch" placeholder="🔍 جستجو (نام، تلفن، مبلغ)…">
+      </div>
+      <div class="hist-filters" id="histFilters">
+        <button class="hist-chip active" data-f="all">همه</button>
+        <button class="hist-chip" data-f="ongrid">آن‌گرید</button>
+        <button class="hist-chip" data-f="offgrid">آف‌گرید</button>
+        <button class="hist-chip" data-f="hybrid">هیبریدی</button>
+      </div>
+      <div id="historyList"></div>
+      <div id="histActions" class="sheet-actions" style="margin-top:14px;display:none;">
+        <button class="btn ghost" id="exportHistBtn" type="button">📤 خروجی</button>
+        <button class="btn solid danger" id="clearHistBtn" type="button">🗑 حذف همه</button>
+      </div>
+    </div>
   </div>
 </div>
 
-<div class="toast" id="toast"></div>
+<!-- Backup Sheet (new) -->
+<div class="sheet-backdrop" id="backupModal" role="dialog" aria-hidden="true">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-head">
+      <h3 id="backupTitle">بک‌آپ / بازیابی</h3>
+      <button class="close-btn" data-close="backupModal">✕</button>
+    </div>
+    <div class="sheet-body">
+      <div class="backup-card">
+        <h4>📥 خروجی بک‌آپ (JSON)</h4>
+        <p id="bakDlDesc">تمام تنظیمات، تاریخچه و پیش‌نویس فعلی در قالب یک فایل JSON ذخیره می‌شود. می‌توانید این فایل را به گوشی دیگر انتقال دهید.</p>
+        <div class="backup-row">
+          <button class="btn solid primary" id="exportBackupBtn" type="button">📥 دانلود بک‌آپ</button>
+        </div>
+      </div>
+      <div class="backup-card">
+        <h4>📤 بازیابی از فایل</h4>
+        <p id="bakUpDesc">فایل JSON بک‌آپ را انتخاب کنید تا تمام داده‌ها جایگزین شوند (هشدار: داده‌های فعلی بازنویسی می‌شوند).</p>
+        <div class="backup-row">
+          <button class="btn ghost" id="importBackupBtn" type="button">📤 انتخاب فایل…</button>
+          <input type="file" id="backupFileInput" accept="application/json,.json" class="bak-file">
+        </div>
+      </div>
+      <p class="backup-meta" id="backupMeta"></p>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast" role="alert"></div>
+
+<!-- In-App PDF Viewer -->
+<div class="pdf-viewer" id="pdfViewer" role="dialog" aria-hidden="true">
+  <div class="pdfv-bar">
+    <button class="pdfv-btn" id="pdfvClose" aria-label="بستن">✕</button>
+    <div class="pdfv-title" id="pdfvTitle">PDF</div>
+    <button class="pdfv-btn" id="pdfvShare" aria-label="اشتراک">📤</button>
+    <button class="pdfv-btn primary" id="pdfvDownload">⬇ دانلود</button>
+  </div>
+  <div class="pdfv-scroll" id="pdfvScroll">
+    <div class="pdfv-loading" id="pdfvLoading">در حال بارگذاری…</div>
+  </div>
+</div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-<script>
-(function(){
-  if(window['pdfjsLib']){
-    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-  }
-})();
-</script>
-<script>
-(function(){
-  "use strict";
-
-  /* ---------- Persian digits helper ---------- */
-  const faDigits = ['۰','۱','۲','۳','۴','۵','۶','۷','۸','۹'];
-  function toFa(n){
-    return String(n).replace(/[0-9]/g, d => faDigits[d]);
-  }
-  /* ---------- Currency list (abbreviated English codes, no conversion between them) ---------- */
-  const CURRENCIES = [
-    {code:'AFN', symbol:'؋', label:'افغانی',            decimals:0},
-    {code:'USD', symbol:'$', label:'دالر آمریکا',        decimals:2},
-    {code:'EUR', symbol:'€', label:'یورو',               decimals:2},
-    {code:'PKR', symbol:'₨', label:'کلدار پاکستان',      decimals:0},
-    {code:'IRR', symbol:'﷼', label:'تومان ایران',        decimals:0},
-    {code:'AED', symbol:'د.إ', label:'درهم امارات',      decimals:2},
-    {code:'GBP', symbol:'£', label:'پوند انگلیس',        decimals:2}
-  ];
-  function currencyMeta(code){
-    return CURRENCIES.find(c=>c.code===code) || CURRENCIES[0];
-  }
-  /* Currency formatting: number + English abbreviation, e.g. "۱٬۲۰۰٬۰۰۰ AFN" — no conversion, shown exactly as entered */
-  function money(n, curCodeOverride){
-    n = n||0;
-    const cur = curCodeOverride || ((typeof settings!=='undefined' && settings.currency) ? settings.currency : 'AFN');
-    const meta = currencyMeta(cur);
-    let s;
-    if(meta.decimals>0){
-      s = n.toLocaleString('en-US', {maximumFractionDigits: meta.decimals}).replace(/,/g, '٬');
-    } else {
-      s = Math.round(n).toLocaleString('en-US').replace(/,/g, '٬');
-    }
-    return toFa(s) + ' ' + meta.code;
-  }
-  function num(n, decimals){
-    if(decimals===undefined) decimals=1;
-    return toFa(Number(n||0).toFixed(decimals));
-  }
-
-  /* ---------- Settings (persisted) ---------- */
-  const DEFAULT_SETTINGS = {
-    panelPriceByCurrency: {AFN: 1200, USD: 17},
-    bizName: "",
-    logoDataUrl: "",
-    currency: "AFN"
-  };
-  let settings = loadSettings();
-  let pendingLogoDataUrl = settings.logoDataUrl || "";
-
-  function loadSettings(){
-    try{
-      const raw = localStorage.getItem('solarEstimatorSettings');
-      const parsed = raw ? JSON.parse(raw) : {};
-      const merged = Object.assign({}, DEFAULT_SETTINGS, parsed);
-      merged.panelPriceByCurrency = Object.assign({}, DEFAULT_SETTINGS.panelPriceByCurrency, parsed.panelPriceByCurrency||{});
-      // migrate old single AFN/USD fields from a previous version, if present
-      if(parsed.pricePanelPerWattAFN!=null) merged.panelPriceByCurrency.AFN = parsed.pricePanelPerWattAFN;
-      if(parsed.pricePanelPerWattUSD!=null) merged.panelPriceByCurrency.USD = parsed.pricePanelPerWattUSD;
-      return merged;
-    }catch(e){ return Object.assign({}, DEFAULT_SETTINGS, {panelPriceByCurrency: Object.assign({}, DEFAULT_SETTINGS.panelPriceByCurrency)}); }
-  }
-  function saveSettings(){
-    localStorage.setItem('solarEstimatorSettings', JSON.stringify(settings));
-  }
-
-  function renderLogoPreview(dataUrl){
-    const el = document.getElementById('logoPreview');
-    if(dataUrl){
-      el.classList.remove('empty');
-      el.innerHTML = `<img src="${dataUrl}" alt="لوگو">`;
-    } else {
-      el.classList.add('empty');
-      el.innerHTML = 'بدون لوگو';
-    }
-  }
-
-  function showToast(msg){
-    const t = document.getElementById('toast');
-    t.textContent = msg;
-    t.classList.add('show');
-    setTimeout(()=> t.classList.remove('show'), 2200);
-  }
-
-  /* ---------- Online / offline indicator ---------- */
-  function updateOnlineStatus(){
-    document.getElementById('offlineBadge').classList.toggle('show', !navigator.onLine);
-  }
-  window.addEventListener('online', updateOnlineStatus);
-  window.addEventListener('offline', updateOnlineStatus);
-  updateOnlineStatus();
-
-  /* ---------- Currency selects: header, pricing section, settings — always kept in sync ---------- */
-  const currencySelects = document.querySelectorAll('.currency-sync');
-  currencySelects.forEach(sel=>{
-    sel.innerHTML = CURRENCIES.map(c=> `<option value="${c.code}">${c.code} — ${c.label}</option>`).join('');
-  });
-
-  function updateCurrencyDependentLabels(){
-    const code = settings.currency;
-    document.getElementById('lblPanelPrice').textContent = 'قیمت هر وات پنل خورشیدی ('+code+')';
-    document.getElementById('pricePanelPerWatt').value = (settings.panelPriceByCurrency[code]!=null) ? settings.panelPriceByCurrency[code] : '';
-    document.getElementById('lblInverterPrice').textContent = 'قیمت اینورتر ('+code+')';
-    document.getElementById('lblBatteryPrice').textContent = 'قیمت باتری ('+code+')';
-    const lblCtrl = document.getElementById('lblControllerPrice');
-    if(lblCtrl) lblCtrl.textContent = 'قیمت شارژ کنترلر جداگانه ('+code+') — فقط برای آف‌گرید بدون اینورتر هیبریدی';
-  }
-
-  function syncCurrencyUI(){
-    currencySelects.forEach(sel=>{ sel.value = settings.currency; });
-    updateCurrencyDependentLabels();
-  }
-
-  currencySelects.forEach(sel=>{
-    sel.addEventListener('change', function(){
-      settings.currency = this.value;
-      saveSettings();
-      syncCurrencyUI();
-      recalc();
-    });
-  });
-
-  function fillSettingsForm(){
-    document.getElementById('bizName').value = settings.bizName;
-    document.getElementById('logoUpload').value = "";
-    pendingLogoDataUrl = settings.logoDataUrl || "";
-    renderLogoPreview(pendingLogoDataUrl);
-    syncCurrencyUI();
-  }
-  fillSettingsForm();
-
-  document.getElementById('logoUpload').addEventListener('change', function(e){
-    const file = e.target.files[0];
-    if(!file) return;
-    if(file.size > 900*1024){ showToast('حجم لوگو زیاد است (حداکثر ۹۰۰ کیلوبایت)'); return; }
-    const reader = new FileReader();
-    reader.onload = function(ev){
-      pendingLogoDataUrl = ev.target.result;
-      renderLogoPreview(pendingLogoDataUrl);
-    };
-    reader.readAsDataURL(file);
-  });
-  document.getElementById('removeLogoBtn').addEventListener('click', function(){
-    pendingLogoDataUrl = "";
-    document.getElementById('logoUpload').value = "";
-    renderLogoPreview("");
-  });
-
-  /* ---------- Modal helpers ---------- */
-  function openModal(id){ document.getElementById(id).classList.add('open'); }
-  function closeModal(id){ document.getElementById(id).classList.remove('open'); }
-  document.querySelectorAll('[data-close]').forEach(btn=>{
-    btn.addEventListener('click', ()=> closeModal(btn.dataset.close));
-  });
-  document.querySelectorAll('.modal-backdrop').forEach(bd=>{
-    bd.addEventListener('click', e=>{ if(e.target===bd) bd.classList.remove('open'); });
-  });
-  document.getElementById('settingsBtn').addEventListener('click', ()=>{ fillSettingsForm(); openModal('settingsModal'); });
-  document.getElementById('historyBtn').addEventListener('click', ()=>{ renderHistory(); openModal('historyModal'); });
-
-  document.getElementById('saveSettingsBtn').addEventListener('click', ()=>{
-    settings.panelPriceByCurrency[settings.currency] = +document.getElementById('pricePanelPerWatt').value || 0;
-    settings.bizName = document.getElementById('bizName').value.trim();
-    settings.logoDataUrl = pendingLogoDataUrl;
-    saveSettings();
-    closeModal('settingsModal');
-    showToast('تنظیمات ذخیره شد');
-    recalc();
-  });
-  document.getElementById('resetSettingsBtn').addEventListener('click', ()=>{
-    const keepCurrency = settings.currency;
-    settings = Object.assign({}, DEFAULT_SETTINGS, {
-      logoDataUrl: settings.logoDataUrl,
-      currency: keepCurrency,
-      panelPriceByCurrency: Object.assign({}, DEFAULT_SETTINGS.panelPriceByCurrency)
-    });
-    fillSettingsForm();
-  });
-
-  /* ---------- Segmented / tabs ---------- */
-  let systemType = 'ongrid';
-  document.querySelectorAll('#systemType button').forEach(btn=>{
-    btn.addEventListener('click', ()=>{
-      document.querySelectorAll('#systemType button').forEach(b=>b.classList.remove('active'));
-      btn.classList.add('active');
-      systemType = btn.dataset.v;
-      document.getElementById('batteryFields').style.display = (systemType==='ongrid') ? 'none' : 'block';
-      document.getElementById('batteryPriceWrap').style.display = (systemType==='ongrid') ? 'none' : 'block';
-      document.getElementById('controllerPriceWrap').style.display = (systemType==='offgrid') ? 'block' : 'none';
-      recalc();
-    });
-  });
-
-  let consMode = 'daily';
-  document.querySelectorAll('#consMode button').forEach(btn=>{
-    btn.addEventListener('click', ()=>{
-      document.querySelectorAll('#consMode button').forEach(b=>b.classList.remove('active'));
-      btn.classList.add('active');
-      consMode = btn.dataset.v;
-      ['daily','bill','appliance'].forEach(m=>{
-        document.getElementById('cons-'+m).style.display = (m===consMode) ? 'block' : 'none';
-      });
-      recalc();
-    });
-  });
-
-  document.getElementById('cityPreset').addEventListener('change', function(){
-    if(this.value){ document.getElementById('sunHours').value = this.value; recalc(); }
-  });
-
-  /* ---------- Appliance rows ---------- */
-  let applianceRowId = 0;
-  function addApplianceRow(name, watt, hours, qty){
-    applianceRowId++;
-    const id = 'ar_'+applianceRowId;
-    const wrap = document.createElement('div');
-    wrap.className = 'appliance-row';
-    wrap.id = id;
-    wrap.innerHTML = `
-      <input type="text" placeholder="نام وسیله" value="${name||''}" data-f="name">
-      <input type="number" placeholder="وات" min="0" value="${watt||''}" data-f="watt" inputmode="decimal">
-      <input type="number" placeholder="ساعت/روز" min="0" step="0.5" value="${hours||''}" data-f="hours" inputmode="decimal">
-      <input type="number" placeholder="تعداد" min="1" value="${qty||1}" data-f="qty" inputmode="numeric">
-      <button class="del-row" title="حذف">✕</button>
-    `;
-    wrap.querySelectorAll('input').forEach(inp=> inp.addEventListener('input', recalc));
-    wrap.querySelector('.del-row').addEventListener('click', ()=>{ wrap.remove(); recalc(); });
-    document.getElementById('applianceRows').appendChild(wrap);
-  }
-  document.getElementById('addApplianceBtn').addEventListener('click', ()=> addApplianceRow());
-  // seed with a couple common items
-  addApplianceRow('یخچال', 150, 24, 1);
-  addApplianceRow('روشنایی LED', 10, 6, 6);
-  addApplianceRow('پمپ آب', 750, 2, 1);
-
-  function applianceDailyWh(){
-    let total = 0;
-    document.querySelectorAll('#applianceRows .appliance-row').forEach(row=>{
-      const watt = +row.querySelector('[data-f=watt]').value || 0;
-      const hours = +row.querySelector('[data-f=hours]').value || 0;
-      const qty = +row.querySelector('[data-f=qty]').value || 0;
-      total += watt*hours*qty;
-    });
-    return total;
-  }
-
-  /* ---------- Standard sizes ---------- */
-  const STANDARD_INVERTERS = [1,1.5,2,3,3.5,5,6,8,10,12,15,20,25,30];
-  const STANDARD_CONTROLLERS_A = [10,20,30,40,50,60,80,100,120,150]; // common MPPT charge-controller current ratings (amps)
-  const STANDARD_BREAKERS_A = [2,4,6,10,13,16,20,25,32,40,50,63,80,100,125,160,200,250]; // common DC/AC MCB current ratings (amps)
-  const STANDARD_FUSES_A = [2,4,6,10,15,20,25,30,35,40,50,60,70,80,100,125,150,200]; // common DC fuse (string/battery) current ratings (amps)
-  function roundUpStandard(list, value){
-    for(const s of list){ if(s >= value-1e-9) return s; }
-    return list[list.length-1];
-  }
-
-  /* ---------- Panel electrical specs (approx, market datasheet averages) ---------- */
-  const PANEL_SPECS = {
-    400: {vmp:37.1, imp:10.8},
-    450: {vmp:41.4, imp:10.9},
-    500: {vmp:41.7, imp:12.0},
-    550: {vmp:41.7, imp:13.2},
-    600: {vmp:45.5, imp:13.2},
-    650: {vmp:46.9, imp:13.9},
-    700: {vmp:38.7, imp:18.1}
-  };
-
-  /* ---------- DC cable sizing: ampacity table (mm² -> max A, PV-rated DC cable) ---------- */
-  const WIRE_TABLE = [
-    {mm2:1.5, amp:23}, {mm2:2.5, amp:30}, {mm2:4, amp:40}, {mm2:6, amp:52},
-    {mm2:10, amp:70}, {mm2:16, amp:94}, {mm2:25, amp:119}, {mm2:35, amp:148},
-    {mm2:50, amp:180}, {mm2:70, amp:232}, {mm2:95, amp:282}
-  ];
-  const COPPER_RESISTIVITY = 0.0175; // Ω·mm²/m
-  function pickWireSize(designCurrent){
-    for(const w of WIRE_TABLE){ if(w.amp >= designCurrent) return w; }
-    return WIRE_TABLE[WIRE_TABLE.length-1];
-  }
-  function voltageDropPct(current, lengthM, mm2, systemVoltage){
-    if(!systemVoltage) return 0;
-    const dv = (2*lengthM*current*COPPER_RESISTIVITY)/mm2;
-    return (dv/systemVoltage)*100;
-  }
-
-  /* ---------- Panel string (series/parallel) wiring plan ----------
-     Automatically decides how panels should be wired — fully in series
-     (مسلسل), fully in parallel (موازی), or mixed series-parallel (مختلط) —
-     based on system type and (for off-grid/hybrid) the battery bus voltage:
-     - On-grid: targets a nominal string voltage suited to common
-       residential string-inverter MPPT windows, capped by an assumed safe
-       maximum string voltage.
-     - Off-grid/Hybrid: targets an array voltage comfortably above the
-       battery bank voltage (so the charge controller/hybrid inverter can
-       charge reliably even in hot weather, when panel voltage sags), while
-       staying under a typical MPPT charge-controller max PV input voltage. */
-  function calcPanelStringConfig(panelCount, panelSpec, systemType, systemVoltage){
-    if(panelCount<=0) return {seriesCount:0, parallelStrings:0, totalPanels:0, arrayVoltage:0, arrayCurrent:0, wiringType:'—'};
-    const vmp = panelSpec.vmp, imp = panelSpec.imp;
-    const vocEst = vmp*1.25; // approx Voc from Vmp, typical for crystalline panels
-    let seriesCount;
-    if(systemType==='ongrid'){
-      const MAX_STRING_VOLTAGE = 500;   // safe assumed ceiling for common residential string inverters
-      const TARGET_STRING_VOLTAGE = 380; // typical sweet-spot within most MPPT windows
-      const maxBySafety = Math.max(1, Math.floor(MAX_STRING_VOLTAGE/vocEst));
-      seriesCount = Math.min(Math.max(1, Math.round(TARGET_STRING_VOLTAGE/vmp)), maxBySafety);
-    } else {
-      const MAX_CONTROLLER_VOLTAGE = 150; // typical MPPT solar charge-controller / hybrid-inverter PV input rating
-      const maxBySafety = Math.max(1, Math.floor(MAX_CONTROLLER_VOLTAGE/vocEst));
-      const minForCharging = Math.max(1, Math.ceil((systemVoltage*1.3)/vmp));
-      seriesCount = Math.min(minForCharging, maxBySafety);
-    }
-    seriesCount = Math.max(1, Math.min(seriesCount, panelCount));
-    const parallelStrings = Math.max(1, Math.ceil(panelCount/seriesCount));
-    const totalPanels = seriesCount*parallelStrings;
-    const arrayVoltage = seriesCount*vmp;
-    const arrayCurrent = parallelStrings*imp;
-    const wiringType = seriesCount===1 ? 'موازی (Parallel)' : (parallelStrings===1 ? 'مسلسل / سری (Series)' : 'مختلط سری-موازی (Series-Parallel)');
-    return {seriesCount, parallelStrings, totalPanels, arrayVoltage, arrayCurrent, wiringType};
-  }
-
-  /* ---------- Battery bank (series/parallel) wiring plan ----------
-     Works out how the battery bank should be wired from the system bus
-     voltage, the voltage/capacity of a single battery unit, and either a
-     user-given battery count or the calculated required Ah capacity. */
-  function calcBatteryBank(requiredAh, systemVoltage, unitVoltage, unitAh, userCount){
-    if(!unitVoltage || unitVoltage<=0) unitVoltage = systemVoltage;
-    const seriesPerString = Math.max(1, Math.round(systemVoltage/unitVoltage));
-    const voltageMismatch = Math.abs(seriesPerString*unitVoltage - systemVoltage) > 0.01;
-    let parallelStrings=0, totalCount=0;
-    if(userCount && userCount>0){
-      totalCount = userCount;
-      parallelStrings = Math.max(1, Math.floor(userCount/seriesPerString));
-    } else if(unitAh>0){
-      parallelStrings = Math.max(1, Math.ceil(requiredAh/unitAh));
-      totalCount = seriesPerString*parallelStrings;
-    }
-    const totalAh = unitAh>0 ? parallelStrings*unitAh : 0;
-    const wiringType = totalCount<=0 ? '—' : (seriesPerString===1 ? 'موازی (Parallel)' : (parallelStrings===1 ? 'مسلسل / سری (Series)' : 'مختلط سری-موازی (Series-Parallel)'));
-    return {seriesPerString, parallelStrings, totalCount, totalAh, wiringType, voltageMismatch};
-  }
-
-  /* ---------- Charge controller sizing (off-grid / hybrid) ----------
-     Recommends a standard MPPT charge-controller current rating from the
-     solar array's design current (with a 1.25 safety factor per common
-     practice), and separately flags whether the array voltage fits under
-     typical controller PV-input voltage ratings. This is informational:
-     for hybrid systems the controller is normally built into the inverter,
-     so it's only priced as a separate line item for off-grid systems where
-     the user explicitly enters a separate controller price. */
-  function calcChargeController(arrayCurrent, arrayVoltage){
-    const designCurrent = arrayCurrent*1.25;
-    const ratedCurrent = roundUpStandard(STANDARD_CONTROLLERS_A, designCurrent);
-    const voltageOk = arrayVoltage>0 && arrayVoltage<=150;
-    return {designCurrent, ratedCurrent, voltageOk};
-  }
-
-  /* ---------- Breaker (MCB) & fuse sizing ----------
-     Recommends standard breaker/fuse current ratings and installation
-     location for every protection point in the system:
-       - PV main DC breaker/isolator (array -> controller/inverter)
-       - Per-string fuse (only relevant once there are 2+ parallel strings,
-         sized ~156% of a single string's short-circuit-ish current per
-         common PV design practice)
-       - Battery DC breaker/fuse (battery -> inverter)
-       - AC output breaker (inverter -> load distribution panel)
-       - AC grid/utility breaker (grid <-> inverter, for on-grid/hybrid)
-     This is informational guidance, not a substitute for a licensed
-     electrician's final protection coordination study. */
-  function calcProtection(systemType, panelWiring, batteryCableInfo, batteryVoltage, inverterKw, panelSpec){
-    const result = {};
-
-    // PV main DC breaker/isolator — sized from total array current, 1.25 safety factor
-    const pvDesignA = (panelWiring.arrayCurrent||0) * 1.25;
-    result.pvBreakerA = roundUpStandard(STANDARD_BREAKERS_A, pvDesignA);
-    result.pvDesignA = pvDesignA;
-
-    // Per-string fuse — only needed once 2+ parallel strings exist (reverse-current protection)
-    if(panelWiring.parallelStrings >= 2){
-      const stringDesignA = (panelSpec.imp||0) * 1.56; // ~156% of Isc, common PV fuse sizing practice
-      result.stringFuseA = roundUpStandard(STANDARD_FUSES_A, stringDesignA);
-      result.stringFuseNeeded = true;
-    } else {
-      result.stringFuseNeeded = false;
-    }
-
-    // Battery DC breaker/fuse — sized from the battery cable design current already computed for cabling
-    if(systemType!=='ongrid' && batteryCableInfo){
-      const battDesignA = batteryCableInfo.current * 1.25;
-      result.battBreakerA = roundUpStandard(STANDARD_BREAKERS_A, battDesignA);
-      result.battDesignA = battDesignA;
-    }
-
-    // AC output breaker (inverter -> distribution panel) — assumes 230V single-phase, 1.25 safety factor
-    const acOutDesignA = inverterKw>0 ? ((inverterKw*1000)/230)*1.25 : 0;
-    result.acOutBreakerA = roundUpStandard(STANDARD_BREAKERS_A, acOutDesignA);
-    result.acOutDesignA = acOutDesignA;
-
-    // AC grid/utility breaker (grid <-> inverter), relevant for on-grid and hybrid systems
-    if(systemType!=='offgrid'){
-      result.acGridBreakerA = result.acOutBreakerA; // same order-of-magnitude at the point of common coupling
-    }
-
-    return result;
-  }
-
-  function renderProtection(systemType, protection){
-    const box = document.getElementById('protectionResults');
-    let html = '';
-    html += `<div>🔲 بریکر/ایزولاتور اصلی DC (بین آرایه پنل و ${systemType==='ongrid' ? 'اینورتر' : 'کنترلر/اینورتر هیبریدی'}): <b>${toFa(protection.pvBreakerA)} آمپر</b> — نصب: داخل کمبینر باکس، بلافاصله بعد از پنل‌ها و قبل از کابل اصلی</div>`;
-    if(protection.stringFuseNeeded){
-      html += `<div>🔲 فیوز هر رشته پنل (String Fuse): <b>${toFa(protection.stringFuseA)} آمپر</b> — نصب: روی سیم مثبت هر رشته، داخل کمبینر باکس، قبل از اتصال به بریکر اصلی — چون بیش از یک رشته موازی دارید</div>`;
-    } else {
-      html += `<div class="hint">فیوز جداگانه برای هر رشته لازم نیست چون فقط یک رشته پنل دارید؛ همان بریکر اصلی DC کافی است.</div>`;
-    }
-    if(protection.battBreakerA){
-      html += `<div>🔲 بریکر/فیوز باتری (DC): <b>${toFa(protection.battBreakerA)} آمپر</b> — نصب: مستقیم روی سیم مثبت باتری، حداکثر ۱۵ تا ۲۰ سانتی‌متر از ترمینال باتری (نزدیک‌ترین نقطه ممکن)</div>`;
-    }
-    html += `<div>🔲 بریکر خروجی AC اینورتر: <b>${toFa(protection.acOutBreakerA)} آمپر</b> — نصب: بین خروجی اینورتر و تابلو توزیع برق داخل ساختمان</div>`;
-    if(protection.acGridBreakerA){
-      html += `<div>🔲 بریکر برق شهری/کنتور (AC): <b>${toFa(protection.acGridBreakerA)} آمپر</b> — نصب: بین کنتور برق شهری و ورودی اینورتر ${systemType==='hybrid' ? 'هیبریدی' : 'آن‌گرید'}</div>`;
-    }
-    box.innerHTML = html;
-  }
-
-  /* ---------- Full system schematic diagram (SVG, vector — not an image) ----------
-     Draws the actual electrical path (Solar -> Controller/Hybrid Inverter ->
-     Battery / Load / Grid) with every breaker & fuse rating labeled directly
-     on the connecting line, so the diagram always matches the numbers above
-     it. Three fixed layouts (on-grid / off-grid / hybrid) since the topology
-     genuinely differs between them. */
-  function svgBox(x, y, w, h, lines, fill, strokeColor){
-    const lineHeight = 13;
-    const startY = y + h/2 - ((lines.length-1)*lineHeight)/2 + 4;
-    const text = lines.map((t,i)=> `<text x="${x+w/2}" y="${startY+i*lineHeight}" text-anchor="middle" font-size="11" font-family="inherit" fill="#142C4C" font-weight="${i===0?'700':'400'}">${escapeHtml(t)}</text>`).join('');
-    return `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="8" fill="${fill}" stroke="${strokeColor}" stroke-width="1.5"/>${text}`;
-  }
-  function svgArrow(x1, y1, x2, y2, label, labelSide){
-    labelSide = labelSide || 'right';
-    const midX = (x1+x2)/2, midY = (y1+y2)/2;
-    let lx = midX, ly = midY, anchor = 'middle';
-    if(labelSide==='right'){ lx = midX + 8; anchor = 'start'; }
-    else if(labelSide==='left'){ lx = midX - 8; anchor = 'end'; }
-    else if(labelSide==='below'){ ly = midY + 12; }
-    else if(labelSide==='above'){ ly = midY - 6; }
-    const labelHtml = label ? `<text x="${lx}" y="${ly}" text-anchor="${anchor}" font-size="10.5" font-family="inherit" fill="#8a5c15" font-weight="600">${escapeHtml(label)}</text>` : '';
-    return `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#1C9C90" stroke-width="2" marker-end="url(#arrowhead)"/>${labelHtml}`;
-  }
-  const SVG_MARKER_DEFS = `<defs><marker id="arrowhead" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L0,6 L7,3 z" fill="#1C9C90"/></marker></defs>`;
-
-  function buildSystemDiagramSVG(systemType, panelCount, panelWatt, protection, battInfo){
-    const panelLbl = [`☀️ آرایه پنل خورشیدی`, `${toFa(panelCount)} × ${toFa(panelWatt)} وات`];
-    const pvBreakerLbl = protection.stringFuseNeeded
-      ? `بریکر ${toFa(protection.pvBreakerA)}آ + فیوز رشته ${toFa(protection.stringFuseA)}آ`
-      : `بریکر DC ${toFa(protection.pvBreakerA)} آمپر`;
-
-    if(systemType==='ongrid'){
-      const svg = `
-        ${svgBox(90,10,180,50,panelLbl,'#FBEDD3','#E0A542')}
-        ${svgArrow(180,60,180,100,pvBreakerLbl,'right')}
-        ${svgBox(90,100,180,50,['🔌 اینورتر آن‌گرید'],'#E4F4F2','#1C9C90')}
-        ${svgArrow(180,150,180,190,`بریکر AC ${toFa(protection.acOutBreakerA)} آمپر`,'right')}
-        ${svgBox(90,190,180,50,['🏠 تابلو توزیع برق خانه'],'#FCFDFD','#DDE3E1')}
-        ${svgArrow(180,240,180,280,`بریکر ${toFa(protection.acGridBreakerA)} آمپر`,'right')}
-        ${svgBox(90,280,180,50,['⚡ برق شهری (کنتور)'],'#FBEDD3','#E0A542')}
-      `;
-      return {viewBox:'0 0 360 340', body: svg};
-    }
-
-    if(systemType==='offgrid'){
-      const svg = `
-        ${svgBox(90,10,180,50,panelLbl,'#FBEDD3','#E0A542')}
-        ${svgArrow(180,60,180,100,pvBreakerLbl,'right')}
-        ${svgBox(90,100,180,50,['🎛️ شارژ کنترلر MPPT', `${toFa(protection.pvBreakerA)} آمپر کلاس`],'#E4F4F2','#1C9C90')}
-        ${svgArrow(180,150,180,190,protection.battBreakerA?`بریکر باتری ${toFa(protection.battBreakerA)} آمپر`:'','right')}
-        ${svgBox(90,190,180,50,['🔋 بانک باتری', battInfo],'#FBEDD3','#E0A542')}
-        ${svgArrow(180,240,180,280,'','right')}
-        ${svgBox(90,280,180,50,['⚙️ اینورتر آف‌گرید'],'#E4F4F2','#1C9C90')}
-        ${svgArrow(180,330,180,370,`بریکر AC ${toFa(protection.acOutBreakerA)} آمپر`,'right')}
-        ${svgBox(90,370,180,50,['🏠 لودها / مصرف‌کننده‌ها'],'#FCFDFD','#DDE3E1')}
-      `;
-      return {viewBox:'0 0 360 430', body: svg};
-    }
-
-    // hybrid — one hub (hybrid inverter) branching to battery, loads, and grid
-    const svg = `
-      ${svgBox(90,10,180,50,panelLbl,'#FBEDD3','#E0A542')}
-      ${svgArrow(180,60,180,100,pvBreakerLbl,'right')}
-      ${svgBox(90,100,180,55,['⚡ اینورتر هیبریدی'],'#E4F4F2','#1C9C90')}
-      ${svgArrow(155,155,70,210,protection.battBreakerA?`بریکر باتری ${toFa(protection.battBreakerA)}آ`:'','left')}
-      ${svgBox(0,210,140,50,['🔋 بانک باتری', battInfo],'#FBEDD3','#E0A542')}
-      ${svgArrow(180,155,180,210,`بریکر AC ${toFa(protection.acOutBreakerA)}آ`,'right')}
-      ${svgBox(110,210,140,50,['🏠 لودها'],'#FCFDFD','#DDE3E1')}
-      ${svgArrow(255,155,330,210,protection.acGridBreakerA?`بریکر برق ${toFa(protection.acGridBreakerA)}آ`:'','right')}
-      ${svgBox(270,210,150,50,['⚡ برق شهری'],'#FBEDD3','#E0A542')}
-    `;
-    return {viewBox:'0 0 440 280', body: svg};
-  }
-
-  function renderDiagram(systemType, panelCount, panelWatt, protection, batteryKwh, batteryAh, batteryVoltage){
-    const box = document.getElementById('diagramBox');
-    const battInfo = systemType!=='ongrid' ? `${num(batteryKwh,1)} kWh / ${toFa(batteryVoltage)}V` : '';
-    const d = buildSystemDiagramSVG(systemType, panelCount, panelWatt, protection, battInfo);
-    box.innerHTML = `
-      <div class="section-card" style="padding:12px;">
-        <div class="section-head" style="margin-bottom:8px;"><span class="num">🗺️</span><h3>نمودار شماتیک سیستم (وکتور)</h3></div>
-        <svg viewBox="${d.viewBox}" style="width:100%; height:auto; display:block;">${SVG_MARKER_DEFS}${d.body}</svg>
-        <p class="hint" style="margin-top:6px;">آ = آمپر. این نمودار شماتیک ساده‌شده است؛ سیم ارت، SPD و جزئیات تابلو در نقشهٔ نهایی برق‌کار باید اضافه شود.</p>
-      </div>
-    `;
-  }
-
-  /* ---------- User Manual (PDF) extraction ----------
-     Purely local, keyword-based extraction (no AI/server involved):
-     scans the manual's text for lines related to (1) installation and
-     (2) inverter/battery programming, and lists them as-is in a table. */
-  const MANUAL_INSTALL_KEYWORDS = [
-    'install','mounting','mount','wiring','wire size','wire gauge','cable','terminal',
-    'torque','ground','earth','clearance','ventilation','dimension','bracket',
-    'connection diagram','circuit breaker','fuse','conduit','pv input','ac output',
-    'battery connection','ambient temperature','ip rating','ip65','ip20','altitude'
-  ];
-  const MANUAL_PROGRAM_KEYWORDS = [
-    'program','setting','parameter','menu','lcd','display setting','battery type',
-    'battery capacity','configuration','setup','mode selection','charge current',
-    'float voltage','bulk voltage','absorption','equalization','dip switch','firmware',
-    'battery voltage setting','utility mode','output priority','charger source priority',
-    'low voltage cut','back-up mode','grid mode'
-  ];
-
-  function extractManualSections(fullText){
-    const rawLines = fullText
-      .split(/\n|(?<=\.)\s(?=[A-Z0-9•\-])/)
-      .map(l=> l.replace(/\s+/g,' ').trim())
-      .filter(l=> l.length>12 && l.length<260);
-
-    function collect(keywords, max){
-      const seen = new Set();
-      const out = [];
-      for(const line of rawLines){
-        if(out.length>=max) break;
-        const lower = line.toLowerCase();
-        if(keywords.some(k=> lower.includes(k)) && !seen.has(lower)){
-          seen.add(lower);
-          out.push(line);
-        }
-      }
-      return out;
-    }
-
-    return {
-      installation: collect(MANUAL_INSTALL_KEYWORDS, 12),
-      programming: collect(MANUAL_PROGRAM_KEYWORDS, 12)
-    };
-  }
-
-  /* ---------- Translation (English -> Dari/Persian) ----------
-     Uses the free MyMemory translation API (no key required, generous free
-     tier for short texts). Runs client-side, only for the short extracted
-     lines (not the whole PDF), with graceful fallback to the original
-     English line if a translation request fails or the API is unreachable
-     (e.g. no internet). Results are cached so the same line is never
-     translated twice. */
-  const translationCache = new Map();
-  async function translateLine(text){
-    if(translationCache.has(text)) return translationCache.get(text);
-    try{
-      const url = 'https://api.mymemory.translated.net/get?q='+encodeURIComponent(text)+'&langpair=en|fa';
-      const res = await fetch(url);
-      if(!res.ok) throw new Error('bad response');
-      const data = await res.json();
-      const translated = data && data.responseData && data.responseData.translatedText;
-      const finalText = translated && translated.trim() ? translated : text;
-      translationCache.set(text, finalText);
-      return finalText;
-    }catch(err){
-      translationCache.set(text, text);
-      return text; // fall back to original English line if translation is unavailable
-    }
-  }
-  async function translateLines(lines){
-    const out = [];
-    for(const line of lines){
-      out.push(await translateLine(line));
-    }
-    return out;
-  }
-
-  function renderManualExtract(result, fileName, opts){
-    opts = opts || {};
-    const box = document.getElementById('manualExtractBox');
-    if(!result || (!result.installation.length && !result.programming.length)){
-      box.style.display = 'block';
-      box.innerHTML = `<div class="section-card"><div class="section-head"><span class="num">📄</span><h3>یوزر منوال: ${escapeHtml(fileName||'')}</h3></div><p class="hint">در این فایل عبارت مرتبط با نصب یا پروگرام‌کردن پیدا نشد. ممکن است فایل اسکن‌شده (تصویری) باشد که قابل استخراج متن نیست.</p></div>`;
-      return;
-    }
-    function tbl(rows){
-      if(!rows.length) return '<p class="hint">موردی یافت نشد.</p>';
-      return `<table class="manual-table"><tbody>${rows.map((r,i)=>`<tr><th>${toFa(i+1)}</th><td>${escapeHtml(r)}</td></tr>`).join('')}</tbody></table>`;
-    }
-    const loadingNote = opts.translating ? '<p class="hint">🔄 در حال ترجمه به دری/فارسی...</p>' : '';
-    box.style.display = 'block';
-    box.innerHTML = `
-      <div class="section-card">
-        <div class="section-head"><span class="num">📄</span><h3>خلاصه یوزر منوال${fileName ? ' — '+escapeHtml(fileName) : ''}</h3></div>
-        ${loadingNote}
-        <div class="manual-section">
-          <h4>🛠️ رهنمایی نصب</h4>
-          ${tbl(result.installation)}
-        </div>
-        <div class="manual-section">
-          <h4>⚙️ رهنمایی پروگرام‌کردن اینورتر/باتری</h4>
-          ${tbl(result.programming)}
-        </div>
-        <p class="hint">${opts.translated ? 'این موارد از متن انگلیسی یوزر منوال استخراج و به دری/فارسی ترجمه شده‌اند (ترجمه ماشینی — ممکن است دقیق نباشد)؛ لطفاً برای جزئیات کامل خود فایل را هم کنار داشته باشید.' : 'این موارد مستقیماً و بدون تغییر از متن فایل یوزر منوال استخراج شده‌اند (بر اساس کلمات کلیدی)، نه ترجمه یا خلاصه‌سازی هوشمند — لطفاً برای جزئیات کامل خود فایل را هم کنار داشته باشید.'}</p>
-      </div>
-    `;
-  }
-
-  let currentManualExtract = null;
-  let currentManualExtractOriginal = null;
-  let currentManualFileName = '';
-
-  document.getElementById('manualUploadBtn').addEventListener('click', ()=>{
-    document.getElementById('manualUpload').click();
-  });
-
-  document.getElementById('manualUpload').addEventListener('change', async function(e){
-    const file = e.target.files[0];
-    if(!file) return;
-    const statusEl = document.getElementById('manualStatus');
-    statusEl.textContent = 'در حال خواندن فایل...';
-    try{
-      if(!window.pdfjsLib){
-        statusEl.textContent = 'کتابخانه خواندن PDF لود نشد — اتصال اینترنت را بررسی کنید (فقط بار اول لازم است).';
-        return;
-      }
-      const buf = await file.arrayBuffer();
-      const pdf = await pdfjsLib.getDocument({data: buf}).promise;
-      let fullText = '';
-      for(let p=1; p<=pdf.numPages; p++){
-        statusEl.textContent = `در حال پردازش صفحه ${toFa(p)} از ${toFa(pdf.numPages)}...`;
-        const page = await pdf.getPage(p);
-        const content = await page.getTextContent();
-        fullText += content.items.map(it=> it.str).join(' ') + '\n';
-      }
-      const extracted = extractManualSections(fullText);
-      currentManualExtractOriginal = extracted;
-      currentManualFileName = file.name;
-
-      // Show the English extraction immediately, then translate to Dari/Persian in the background.
-      currentManualExtract = extracted;
-      renderManualExtract(extracted, file.name, {translating: true});
-      statusEl.textContent = '✅ فایل «'+file.name+'» پردازش شد — در حال ترجمه...';
-
-      const [installFa, programFa] = await Promise.all([
-        translateLines(extracted.installation),
-        translateLines(extracted.programming)
-      ]);
-      const translatedResult = { installation: installFa, programming: programFa };
-      currentManualExtract = translatedResult;
-      renderManualExtract(translatedResult, file.name, {translated: true});
-      statusEl.textContent = '✅ فایل «'+file.name+'» ترجمه و پردازش شد.';
-    }catch(err){
-      statusEl.textContent = 'خطا در خواندن این PDF (ممکن است رمزگذاری‌شده یا اسکن تصویری باشد).';
-      currentManualExtract = null;
-      currentManualExtractOriginal = null;
-      currentManualFileName = '';
-    }
-  });
-
-  /* ---------- Core calculation ---------- */
-  let quoteCounter = +(localStorage.getItem('solarEstimatorQuoteCounter')||'1');
-  document.getElementById('quoteNo').textContent = '#'+toFa(quoteCounter);
-
-  function getDailyKwh(){
-    if(consMode==='daily'){
-      return +document.getElementById('dailyKwh').value || 0;
-    } else if(consMode==='bill'){
-      return (+document.getElementById('monthlyKwh').value || 0) / 30;
-    } else {
-      return applianceDailyWh() / 1000;
-    }
-  }
-
-  /* Internal default system-loss assumption (wiring, dust, temperature, inverter losses) — not user-configurable */
-  const SYSTEM_LOSS_FACTOR = 0.20;
-
-  function recalc(){
-    const dailyKwh = getDailyKwh();
-    const sunHours = +document.getElementById('sunHours').value || 5;
-    const efficiency = Math.max(0.3, 1-SYSTEM_LOSS_FACTOR);
-    const panelWatt = +document.getElementById('panelWatt').value;
-    const panelSpec = PANEL_SPECS[panelWatt] || {vmp: panelWatt/13, imp: 13};
-
-    // Required array capacity in kW
-    const requiredKw = sunHours>0 ? (dailyKwh / (sunHours*efficiency)) : 0;
-    const rawPanelCount = Math.ceil((requiredKw*1000) / panelWatt) || 0;
-
-    // Battery bus voltage is read up front (needed for panel string sizing on off-grid/hybrid)
-    const batteryVoltageSelected = +document.getElementById('batteryVoltage').value || 24;
-
-    // ---- Panel wiring plan (series / parallel / mixed) ----
-    // Rounds the panel count up to a clean series×parallel configuration.
-    const panelWiring = calcPanelStringConfig(rawPanelCount, panelSpec, systemType, batteryVoltageSelected);
-    const panelCount = panelWiring.totalPanels || rawPanelCount;
-    const actualKw = (panelCount*panelWatt)/1000;
-
-    // Inverter sizing
-    let peakPowerW = +document.getElementById('peakPower').value;
-    if(!peakPowerW){ peakPowerW = (dailyKwh*1000)/4; } // rough heuristic if not provided
-    let neededInverterKw;
-    if(systemType==='ongrid'){
-      neededInverterKw = actualKw * 0.92;
-    } else {
-      neededInverterKw = Math.max(actualKw*0.9, peakPowerW/1000*1.25);
-    }
-    const inverterKw = roundUpStandard(STANDARD_INVERTERS, Math.max(0.5, neededInverterKw));
-
-    // Battery sizing (offgrid / hybrid)
-    let batteryKwh = 0, batteryAh = 0, batteryVoltage = 24;
-    let batteryBank = null, chargeCurrentToBattery = 0, batteryMaxRecCurrent = 0, chargeCurrentWarning = false;
-    if(systemType!=='ongrid'){
-      const autonomyDays = +document.getElementById('autonomyDays').value || 1;
-      const batteryType = document.getElementById('batteryType').value;
-      const dod = batteryType==='lithium' ? 0.9 : (batteryType==='dry' ? 0.6 : 0.5);
-      batteryVoltage = batteryVoltageSelected;
-      batteryKwh = dod>0 ? (dailyKwh*autonomyDays)/dod : 0;
-      batteryAh = batteryVoltage>0 ? (batteryKwh*1000)/batteryVoltage : 0;
-
-      // ---- Battery bank wiring plan (series / parallel / mixed) ----
-      const unitVoltage = +document.getElementById('batteryUnitVoltage').value || batteryVoltage;
-      const unitAh = +document.getElementById('batteryUnitAh').value || 0;
-      const userBattCount = +document.getElementById('batteryCount').value || 0;
-      batteryBank = calcBatteryBank(batteryAh, batteryVoltage, unitVoltage, unitAh, userBattCount);
-
-      // ---- Battery charge current (from solar array, via charge controller, into the bank) ----
-      chargeCurrentToBattery = batteryVoltage>0 ? (actualKw*1000*0.95)/batteryVoltage : 0; // ~95% controller efficiency
-      // Recommended max charge current: lithium ~0.5C, dry/AGM ~0.3C, flooded lead ~0.2C of total bank Ah
-      const chargeRateC = batteryType==='lithium' ? 0.5 : (batteryType==='dry' ? 0.3 : 0.2);
-      batteryMaxRecCurrent = batteryBank.totalAh>0 ? batteryBank.totalAh*chargeRateC : 0;
-      chargeCurrentWarning = batteryMaxRecCurrent>0 && chargeCurrentToBattery>batteryMaxRecCurrent;
-    }
-
-    // ---- Charge controller sizing (off-grid / hybrid informational recommendation) ----
-    let controller = null;
-    if(systemType!=='ongrid'){
-      controller = calcChargeController(panelWiring.arrayCurrent, panelWiring.arrayVoltage);
-    }
-
-    // ---- DC cabling ----
-    const cableLenPanel = +document.getElementById('cableLenPanel').value || 15;
-    const cableLenBattery = +document.getElementById('cableLenBattery').value || 2;
-
-    // Main DC current from array to inverter/charge controller (simplified: array power / panel Vmp), with 1.25 safety factor (NEC 690.8 style)
-    const mainDcCurrent = panelSpec.vmp>0 ? ((actualKw*1000)/panelSpec.vmp)*1.25 : 0;
-    const mainWire = pickWireSize(mainDcCurrent);
-    const mainVdrop = voltageDropPct(mainDcCurrent/1.25, cableLenPanel, mainWire.mm2, panelSpec.vmp);
-
-    // Panel string home-run current (single string ≈ one panel's Imp)
-    const stringCurrent = panelSpec.imp*1.25;
-    const stringWire = pickWireSize(stringCurrent);
-
-    let batteryCableInfo = null;
-    if(systemType!=='ongrid'){
-      const battCurrent = (Math.max(actualKw*1000, peakPowerW||0)/batteryVoltage)*1.25;
-      const battWire = pickWireSize(battCurrent);
-      const battVdrop = voltageDropPct(battCurrent/1.25, cableLenBattery, battWire.mm2, batteryVoltage);
-      batteryCableInfo = {current: battCurrent/1.25, wire: battWire, vdrop: battVdrop};
-    }
-
-    // ---- Packaging / wiring plan display ----
-    let packagingHtml = '';
-    const rawKw = (rawPanelCount*panelWatt)/1000;
-    packagingHtml += `<div class="hint">📐 نیاز خام محاسبه‌شده: مصرف روزانه (${num(dailyKwh,2)} kWh) ÷ ساعت آفتاب (${num(sunHours,1)}) ÷ راندمان سیستم (${toFa(Math.round(efficiency*100))}٪، یعنی ${toFa(Math.round(SYSTEM_LOSS_FACTOR*100))}٪ تلفات کابل/گرد‌وغبار/حرارت/اینورتر در نظر گرفته شده) = <b>${num(requiredKw,2)} کیلووات</b> → حداقل <b>${toFa(rawPanelCount)} پنل</b> (${num(rawKw,2)} کیلووات)</div>`;
-    if(panelWiring.totalPanels !== rawPanelCount){
-      packagingHtml += `<div class="hint">🔧 برای تکمیل آرایش استاندارد رشته سری-موازی (همه رشته‌ها هم‌طول)، تعداد پنل از ${toFa(rawPanelCount)} به <b>${toFa(panelWiring.totalPanels)}</b> گرد شده — این افزایش لازم است تا رشته‌ها ولتاژ یکسان داشته باشند و باعث افت راندمان یا آسیب به کنترلر/اینورتر نشود.</div>`;
-    }
-    packagingHtml += `<div>☀️ بسته‌بندی پنل‌ها: <b>${toFa(panelWiring.seriesCount)}</b> پنل مسلسل (سری) در هر رشته × <b>${toFa(panelWiring.parallelStrings)}</b> رشته موازی = <b>${toFa(panelWiring.totalPanels)}</b> پنل — نوع سیم‌کشی: <b>${panelWiring.wiringType}</b></div>`;
-    packagingHtml += `<div>⚡ ولتاژ کل آرایه (Vmp): <b>${num(panelWiring.arrayVoltage,1)} ولت</b> &nbsp;|&nbsp; جریان کل آرایه (Imp): <b>${num(panelWiring.arrayCurrent,1)} آمپر</b></div>`;
-    if(systemType!=='ongrid' && batteryBank){
-      if(batteryBank.totalCount>0){
-        packagingHtml += `<div>🔋 بسته‌بندی باتری: <b>${toFa(batteryBank.seriesPerString)}</b> باتری مسلسل (سری) در هر رشته × <b>${toFa(batteryBank.parallelStrings)}</b> رشته موازی = <b>${toFa(batteryBank.totalCount)}</b> باتری — نوع سیم‌کشی: <b>${batteryBank.wiringType}</b></div>`;
-        if(batteryBank.totalAh>0){
-          const covPct = batteryAh>0 ? (batteryBank.totalAh/batteryAh)*100 : 100;
-          packagingHtml += `<div>📦 ظرفیت کل بانک باتری: <b>${num(batteryBank.totalAh,0)} آمپرساعت</b> (نیاز محاسبه‌شده: ${num(batteryAh,0)} آمپرساعت — پوشش ${toFa(Math.round(covPct))}٪)</div>`;
-        }
-        if(batteryBank.voltageMismatch){
-          packagingHtml += `<div style="color:var(--danger);">⚠️ ولتاژ هر باتری با ولتاژ سیستم (${toFa(batteryVoltage)} ولت) به‌طور دقیق هم‌خوان نیست؛ تعداد باتری در سری را بازبینی کنید.</div>`;
-        }
-      } else {
-        packagingHtml += `<div class="hint">برای محاسبه بسته‌بندی باتری، ظرفیت هر باتری (آمپرساعت) یا تعداد باتری را در بخش ۵ وارد کنید.</div>`;
-      }
-      packagingHtml += `<div>🔌 جریان شارژ به باتری (از آرایه خورشیدی): <b>${num(chargeCurrentToBattery,1)} آمپر</b></div>`;
-      if(chargeCurrentWarning){
-        packagingHtml += `<div style="color:var(--danger);">⚠️ جریان شارژ از حداکثر جریان توصیه‌شده برای این نوع/ظرفیت باتری (${num(batteryMaxRecCurrent,1)} آمپر) بیشتر است — تعداد رشته‌های موازی باتری را افزایش دهید یا شارژ کنترولر را با ریتینگ بالاتر انتخاب کنید.</div>`;
-      }
-    }
-    document.getElementById('packagingResults').innerHTML = packagingHtml;
-
-    // ---- Charge controller recommendation display ----
-    const controllerBox = document.getElementById('controllerResults');
-    if(controller){
-      let ctrlHtml = `<div>🎛️ شارژ کنترلر پیشنهادی (MPPT): <b>${toFa(controller.ratedCurrent)} آمپر</b> (جریان طراحی آرایه با ضریب ایمنی: ${num(controller.designCurrent,1)} آمپر)</div>`;
-      if(!controller.voltageOk){
-        ctrlHtml += `<div style="color:var(--danger);">⚠️ ولتاژ آرایه (${num(panelWiring.arrayVoltage,1)} ولت) از محدوده معمول ورودی شارژ کنترلرهای MPPT (حداکثر ~۱۵۰ ولت) بیشتر است — تعداد پنل در سری را کاهش دهید.</div>`;
-      }
-      ctrlHtml += `<div class="hint">${systemType==='hybrid' ? 'در اینورترهای هیبریدی معمولاً شارژ کنترلر MPPT داخل خود اینورتر است؛ این عدد فقط برای اطمینان از تطابق با مشخصات فنی اینورتر انتخابی است.' : 'اگر از اینورتر ساده (بدون MPPT داخلی) استفاده می‌کنید، یک شارژ کنترلر جداگانه با این ریتینگ جریان لازم دارید.'}</div>`;
-      controllerBox.innerHTML = ctrlHtml;
-    } else {
-      controllerBox.innerHTML = '';
-    }
-
-    document.getElementById('cablingResults').innerHTML = `
-      <div>🔌 کابل هر رشته پنل (Home‑run): جریان طراحی ${num(stringCurrent/1.25,1)} آمپر → سطح مقطع پیشنهادی <b>${toFa(stringWire.mm2)} mm²</b></div>
-      <div>🔌 کابل اصلی DC (پنل‌ها تا اینورتر/کنترلر): جریان طراحی ${num(mainDcCurrent/1.25,1)} آمپر → سطح مقطع پیشنهادی <b>${toFa(mainWire.mm2)} mm²</b> (افت ولتاژ تقریبی ${num(mainVdrop,2)}٪)</div>
-      ${batteryCableInfo ? `<div>🔋 کابل باتری تا اینورتر: جریان طراحی ${num(batteryCableInfo.current,1)} آمپر → سطح مقطع پیشنهادی <b>${toFa(batteryCableInfo.wire.mm2)} mm²</b> (افت ولتاژ تقریبی ${num(batteryCableInfo.vdrop,2)}٪)</div>` : ''}
-    `;
-
-    // ---- Breaker (MCB) & fuse protection recommendations ----
-    const protection = calcProtection(systemType, panelWiring, batteryCableInfo, batteryVoltage, inverterKw, panelSpec);
-    renderProtection(systemType, protection);
-
-    // ---- Full system schematic diagram (SVG) ----
-    renderDiagram(systemType, panelCount, panelWatt, protection, batteryKwh, batteryAh, batteryVoltage);
-
-    // Currency-aware label updates (abbreviation shown everywhere, in sync with the currency selectors)
-    const curCode = settings.currency;
-    document.getElementById('lblInverterPrice').textContent = 'قیمت اینورتر ('+curCode+')';
-    document.getElementById('lblBatteryPrice').textContent = 'قیمت باتری ('+curCode+')';
-    const lblCtrlPrice = document.getElementById('lblControllerPrice');
-    if(lblCtrlPrice) lblCtrlPrice.textContent = 'قیمت شارژ کنترلر جداگانه ('+curCode+') — فقط برای آف‌گرید بدون اینورتر هیبریدی';
-    document.getElementById('thUnitPrice').textContent = 'قیمت واحد ('+curCode+')';
-    document.getElementById('thTotalPrice').textContent = 'قیمت کل ('+curCode+')';
-
-    // Costing — panel price is independent per currency (set in ⚙️ settings);
-    // inverter/battery/controller prices are entered manually per quote since they vary by model/supplier
-    const panelPricePerWatt = settings.panelPriceByCurrency[curCode] || 0;
-    const panelCost = panelCount*panelWatt*panelPricePerWatt;
-    const inverterCost = +document.getElementById('priceInverterManual').value || 0;
-    const batteryCost = systemType!=='ongrid' ? (+document.getElementById('priceBatteryManual').value || 0) : 0;
-    const controllerCost = systemType==='offgrid' ? (+document.getElementById('priceControllerManual').value || 0) : 0;
-
-    const grandTotal = panelCost+inverterCost+batteryCost+controllerCost;
-
-    // ---- Render preview ----
-    const sysLabels = {ongrid:'متصل به شبکه', offgrid:'مستقل (آف‌گرید)', hybrid:'هیبریدی'};
-    document.getElementById('quoteSystemLabel').textContent = sysLabels[systemType];
-    const d = new Date();
-    document.getElementById('quoteDate').textContent = d.toLocaleDateString('fa-IR');
-
-    // Brand header (logo + name)
-    const brandBox = document.getElementById('quoteBrand');
-    const brandLogo = document.getElementById('quoteBrandLogo');
-    const brandName = document.getElementById('quoteBrandName');
-    if(settings.logoDataUrl || settings.bizName){
-      brandBox.style.display = 'flex';
-      if(settings.logoDataUrl){ brandLogo.src = settings.logoDataUrl; brandLogo.style.display='block'; }
-      else{ brandLogo.style.display='none'; }
-      brandName.textContent = settings.bizName || '';
-    } else {
-      brandBox.style.display = 'none';
-    }
-
-    const custName = document.getElementById('custName').value.trim();
-    const custPhone = document.getElementById('custPhone').value.trim();
-    const custAddr = document.getElementById('custAddr').value.trim();
-    let recap = '';
-    if(custName) recap += `<b>مشتری:</b> ${escapeHtml(custName)} `;
-    if(custPhone) recap += `&nbsp;&nbsp;<b>تماس:</b> ${escapeHtml(custPhone)} `;
-    if(custAddr) recap += `<br><b>آدرس:</b> ${escapeHtml(custAddr)}`;
-    document.getElementById('custRecap').innerHTML = recap || '<span style="color:#9AA3AC;">اطلاعات مشتری وارد نشده</span>';
-
-    // gauge
-    const producedKwhDaily = actualKw*sunHours*efficiency;
-    const coveragePct = dailyKwh>0 ? Math.min(150, (producedKwhDaily/dailyKwh)*100) : 100;
-    const circumference = 226;
-    const offset = circumference - (Math.min(100,coveragePct)/100)*circumference;
-    document.getElementById('gaugeArc').setAttribute('stroke-dashoffset', offset);
-    document.getElementById('gaugePct').textContent = toFa(Math.round(coveragePct))+'٪';
-    document.getElementById('gaugeCapacity').textContent = num(actualKw,2)+' کیلووات';
-    document.getElementById('gaugeLabel').textContent = 'ظرفیت سامانه — پوشش '+toFa(Math.round(coveragePct))+'٪ از مصرف روزانه';
-
-    const rows = [];
-    rows.push(['پنل خورشیدی '+toFa(panelWatt)+' وات', toFa(panelCount)+' عدد', money(panelWatt*panelPricePerWatt), money(panelCost)]);
-    const inverterModel = document.getElementById('inverterModel').value.trim();
-    const inverterDesc = 'اینورتر '+num(inverterKw,1)+' کیلووات'+(inverterModel ? ' — '+escapeHtml(inverterModel) : '');
-    rows.push([inverterDesc, '۱ دستگاه', money(inverterCost), money(inverterCost)]);
-    if(systemType!=='ongrid'){
-      rows.push(['بانک باتری ('+num(batteryKwh,1)+' کیلووات‌ساعت، '+toFa(batteryVoltage)+' ولت، '+num(batteryAh,0)+' آمپرساعت)', '۱ مجموعه', money(batteryCost), money(batteryCost)]);
-    }
-    if(systemType==='offgrid' && controllerCost>0){
-      rows.push(['شارژ کنترلر MPPT '+toFa(controller.ratedCurrent)+' آمپر', '۱ دستگاه', money(controllerCost), money(controllerCost)]);
-    }
-
-    document.getElementById('quoteBody').innerHTML = rows.map(r=>
-      `<tr><td>${r[0]}</td><td class="num">${r[1]}</td><td class="num">${r[2]}</td><td class="num">${r[3]}</td></tr>`
-    ).join('');
-
-    document.getElementById('totalsBox').innerHTML = `
-      <div class="line final"><span>مبلغ نهایی</span><span><b>${money(grandTotal)}</b></span></div>
-    `;
-
-    const installerNotes = document.getElementById('installerNotes').value.trim();
-    const notesBox = document.getElementById('installerNotesBox');
-    if(installerNotes){
-      notesBox.style.display = 'block';
-      notesBox.innerHTML = '<b>📋 یادداشت برای نصاب:</b><br>' + escapeHtml(installerNotes).replace(/\n/g,'<br>');
-    } else {
-      notesBox.style.display = 'none';
-      notesBox.innerHTML = '';
-    }
-
-    // stash current computed quote for saving / sharing
-    window.__currentQuote = {
-      id: Date.now(),
-      no: quoteCounter,
-      date: d.toISOString(),
-      systemType, custName, custPhone, custAddr,
-      dailyKwh, actualKw, panelCount, panelWatt, inverterKw,
-      batteryKwh, inverterCost, batteryCost, controllerCost, grandTotal, currency: settings.currency,
-      inverterModel, installerNotes,
-      manualExtract: currentManualExtract,
-      manualExtractOriginal: currentManualExtractOriginal,
-      manualFileName: currentManualFileName
-    };
-  }
-
-  function escapeHtml(s){
-    return s.replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-  }
-
-  // wire up recalc on all relevant inputs
-  ['dailyKwh','monthlyKwh','sunHours','panelWatt','autonomyDays','batteryVoltage','batteryType','batteryUnitVoltage','batteryUnitAh','batteryCount','peakPower','custName','custPhone','custAddr','cableLenPanel','cableLenBattery','priceInverterManual','priceBatteryManual','priceControllerManual','inverterModel','installerNotes']
-    .forEach(id=>{
-      const el = document.getElementById(id);
-      if(el) el.addEventListener('input', recalc);
-      if(el && el.tagName==='SELECT') el.addEventListener('change', recalc);
-    });
-
-  /* ---------- History ---------- */
-  function loadHistory(){
-    try{ return JSON.parse(localStorage.getItem('solarEstimatorQuotes')||'[]'); }
-    catch(e){ return []; }
-  }
-  function saveHistory(list){
-    localStorage.setItem('solarEstimatorQuotes', JSON.stringify(list));
-  }
-  function renderHistory(){
-    const list = loadHistory();
-    const box = document.getElementById('historyList');
-    if(!list.length){ box.innerHTML = '<div class="empty">هنوز پیش‌فاکتوری ذخیره نشده است.</div>'; return; }
-    box.innerHTML = list.slice().reverse().map(q=>{
-      const dt = new Date(q.date).toLocaleDateString('fa-IR');
-      return `<div class="history-item">
-        <span>#${toFa(q.no)} — ${escapeHtml(q.custName||'بدون نام')} — ${dt} — ${money(q.grandTotal, q.currency)}</span>
-        <span class="h-actions">
-          <button data-load="${q.id}" title="بارگذاری">↩️</button>
-          <button data-del="${q.id}" title="حذف">🗑️</button>
-        </span>
-      </div>`;
-    }).join('');
-    box.querySelectorAll('[data-del]').forEach(btn=>{
-      btn.addEventListener('click', ()=>{
-        const id = +btn.dataset.del;
-        saveHistory(loadHistory().filter(q=>q.id!==id));
-        renderHistory();
-      });
-    });
-    box.querySelectorAll('[data-load]').forEach(btn=>{
-      btn.addEventListener('click', ()=>{
-        const id = +btn.dataset.load;
-        const q = loadHistory().find(q=>q.id===id);
-        if(!q) return;
-        document.getElementById('custName').value = q.custName||'';
-        document.getElementById('custPhone').value = q.custPhone||'';
-        document.getElementById('custAddr').value = q.custAddr||'';
-        document.getElementById('dailyKwh').value = q.dailyKwh;
-        document.querySelectorAll('#systemType button').forEach(b=> b.classList.toggle('active', b.dataset.v===q.systemType));
-        systemType = q.systemType;
-        document.getElementById('batteryFields').style.display = (systemType==='ongrid') ? 'none' : 'block';
-        document.getElementById('batteryPriceWrap').style.display = (systemType==='ongrid') ? 'none' : 'block';
-        document.getElementById('controllerPriceWrap').style.display = (systemType==='offgrid') ? 'block' : 'none';
-        document.getElementById('priceInverterManual').value = q.inverterCost||'';
-        document.getElementById('priceBatteryManual').value = q.batteryCost||'';
-        document.getElementById('priceControllerManual').value = q.controllerCost||'';
-        document.getElementById('inverterModel').value = q.inverterModel||'';
-        document.getElementById('installerNotes').value = q.installerNotes||'';
-        currentManualExtract = q.manualExtract || null;
-        currentManualExtractOriginal = q.manualExtractOriginal || null;
-        currentManualFileName = q.manualFileName || '';
-        if(currentManualExtract){
-          renderManualExtract(currentManualExtract, currentManualFileName, {translated: true});
-          document.getElementById('manualStatus').textContent = currentManualFileName ? '📄 '+currentManualFileName : '';
-        } else {
-          document.getElementById('manualExtractBox').style.display = 'none';
-          document.getElementById('manualStatus').textContent = '';
-        }
-        if(q.currency){ settings.currency = q.currency; saveSettings(); syncCurrencyUI(); }
-        document.querySelectorAll('#consMode button').forEach(b=> b.classList.toggle('active', b.dataset.v==='daily'));
-        consMode='daily';
-        document.getElementById('cons-daily').style.display='block';
-        document.getElementById('cons-bill').style.display='none';
-        document.getElementById('cons-appliance').style.display='none';
-        closeModal('historyModal');
-        recalc();
-        showToast('پیش‌فاکتور بارگذاری شد');
-      });
-    });
-  }
-
-  document.getElementById('saveBtn').addEventListener('click', ()=>{
-    recalc();
-    const q = window.__currentQuote;
-    const list = loadHistory();
-    list.push(q);
-    saveHistory(list);
-    quoteCounter++;
-    localStorage.setItem('solarEstimatorQuoteCounter', quoteCounter);
-    document.getElementById('quoteNo').textContent = '#'+toFa(quoteCounter);
-    showToast('پیش‌فاکتور ذخیره شد');
-  });
-
-  /* Normalize an Afghan-style phone number into international digits-only form for WhatsApp links.
-     Accepts formats like 0793xxxxxx, 93793xxxxxx, +93793xxxxxx, 793xxxxxx, with spaces/dashes. */
-  function normalizePhoneForWhatsapp(raw){
-    let d = (raw||'').replace(/[^\d]/g,'');
-    if(!d) return '';
-    if(d.startsWith('00')) d = d.slice(2);
-    if(d.startsWith('0')) d = '93' + d.slice(1);
-    else if(d.length===9) d = '93' + d; // local number typed without leading 0
-    return d;
-  }
-
-  /* Open WhatsApp using ONLY the https://wa.me/ link (no whatsapp:// custom
-     scheme at all). This fixes both earlier problems:
-     1) It never breaks/replaces the current page, because it's a normal
-        https URL — unlike "whatsapp://...", it can never produce a
-        "not a valid page" / broken-page error if WhatsApp isn't registered.
-     2) On a phone with WhatsApp installed, wa.me is WhatsApp's own official
-        link that the OS hands off directly to the WhatsApp app (with the
-        phone number and pre-filled text intact) — this is more reliable
-        than the whatsapp:// scheme, which some in-app browsers/WebViews
-        open to WhatsApp's default screen while silently dropping the
-        phone/text parameters (this was the exact issue: "app opened but
-        not the actual chat/message").
-     3) On desktop (or if WhatsApp isn't installed on the phone), it simply
-        opens the wa.me page / WhatsApp Web in a normal new tab. */
-  function openWhatsapp(webUrl){
-    window.open(webUrl, '_blank');
-  }
-
-  document.getElementById('whatsappBtn').addEventListener('click', ()=>{
-    recalc();
-    const q = window.__currentQuote;
-    const sysLabels = {ongrid:'متصل به شبکه', offgrid:'مستقل (آف‌گرید)', hybrid:'هیبریدی'};
-    let text = `پیش‌فاکتور سیستم خورشیدی #${toFa(q.no)}\n`;
-    if(settings.bizName) text += `ارائه‌دهنده: ${settings.bizName}\n`;
-    if(q.custName) text += `مشتری: ${q.custName}\n`;
-    text += `نوع سیستم: ${sysLabels[q.systemType]}\n`;
-    text += `ظرفیت پیشنهادی: ${num(q.actualKw,2)} کیلووات (${toFa(q.panelCount)} پنل)\n`;
-    if(q.inverterModel) text += `مدل اینورتر: ${q.inverterModel}\n`;
-    text += `مبلغ نهایی: ${money(q.grandTotal, q.currency)}`;
-    if(q.installerNotes) text += `\n\nیادداشت نصب:\n${q.installerNotes}`;
-
-    const phone = normalizePhoneForWhatsapp(q.custPhone);
-    if(!phone){
-      showToast('برای ارسال مستقیم، شماره تماس مشتری را وارد کنید');
-    }
-    const encoded = encodeURIComponent(text);
-    const webUrl = phone ? ('https://wa.me/'+phone+'?text='+encoded) : ('https://wa.me/?text='+encoded);
-    openWhatsapp(webUrl);
-  });
-
-  let __printFired = false;
-  window.addEventListener('beforeprint', ()=>{ __printFired = true; });
-  document.getElementById('printBtn').addEventListener('click', ()=>{
-    __printFired = false;
-    try{
-      if(typeof window.print === 'function'){
-        window.print();
-      } else {
-        throw new Error('print not supported');
-      }
-    }catch(err){
-      showToast('چاپ در این اپلیکیشن پشتیبانی نمی‌شود — لینک را در Chrome باز کنید');
-      return;
-    }
-    // Some in-app WebViews (e.g. file-manager "quick view" apps) accept the print() call
-    // silently without ever opening a print dialog. Detect that and guide the user.
-    setTimeout(()=>{
-      if(!__printFired){
-        showToast('اگر صفحه چاپ باز نشد، این فایل را در مرورگر Chrome باز کنید');
-      }
-    }, 600);
-  });
-
-  document.getElementById('clearBtn').addEventListener('click', ()=>{
-    // customer info
-    document.getElementById('custName').value='';
-    document.getElementById('custPhone').value='';
-    document.getElementById('custAddr').value='';
-
-    // system type -> back to on-grid
-    document.querySelectorAll('#systemType button').forEach(b=> b.classList.toggle('active', b.dataset.v==='ongrid'));
-    systemType = 'ongrid';
-    document.getElementById('batteryFields').style.display = 'none';
-
-    // consumption mode -> back to daily
-    document.querySelectorAll('#consMode button').forEach(b=> b.classList.toggle('active', b.dataset.v==='daily'));
-    consMode = 'daily';
-    document.getElementById('cons-daily').style.display='block';
-    document.getElementById('cons-bill').style.display='none';
-    document.getElementById('cons-appliance').style.display='none';
-    document.getElementById('dailyKwh').value = 8;
-    document.getElementById('monthlyKwh').value = 240;
-
-    // appliance list -> reset to default seed rows
-    document.getElementById('applianceRows').innerHTML = '';
-    addApplianceRow('یخچال', 150, 24, 1);
-    addApplianceRow('روشنایی LED', 10, 6, 6);
-    addApplianceRow('پمپ آب', 750, 2, 1);
-
-    // sun hours
-    document.getElementById('cityPreset').value = '';
-    document.getElementById('sunHours').value = 5.5;
-
-    // battery fields
-    document.getElementById('autonomyDays').value = 1;
-    document.getElementById('batteryVoltage').value = 24;
-    document.getElementById('batteryType').value = 'lithium';
-    document.getElementById('batteryUnitVoltage').value = 12;
-    document.getElementById('batteryUnitAh').value = '';
-    document.getElementById('batteryCount').value = '';
-    document.getElementById('peakPower').value = '';
-
-    // panel + cabling
-    document.getElementById('panelWatt').value = 550;
-    document.getElementById('cableLenPanel').value = 15;
-    document.getElementById('cableLenBattery').value = 2;
-
-    // manual equipment pricing
-    document.getElementById('priceInverterManual').value = '';
-    document.getElementById('priceBatteryManual').value = '';
-    document.getElementById('priceControllerManual').value = '';
-    document.getElementById('inverterModel').value = '';
-    document.getElementById('installerNotes').value = '';
-    document.getElementById('batteryPriceWrap').style.display = 'none';
-    document.getElementById('controllerPriceWrap').style.display = 'none';
-
-    // user manual extraction
-    currentManualExtract = null;
-    currentManualExtractOriginal = null;
-    currentManualFileName = '';
-    document.getElementById('manualUpload').value = '';
-    document.getElementById('manualStatus').textContent = '';
-    document.getElementById('manualExtractBox').style.display = 'none';
-    document.getElementById('manualExtractBox').innerHTML = '';
-
-    recalc();
-    showToast('فرم پاک شد');
-  });
-
-  /* ---------- Service worker registration ---------- */
-  if('serviceWorker' in navigator){
-    window.addEventListener('load', ()=>{
-      navigator.serviceWorker.register('sw.js').catch(()=>{});
-    });
-  }
-
-  /* ---------- init ---------- */
-  recalc();
-})();
-</script>
-</body>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="app.js"></script>
+
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a1804e4d79cde8c7',t:'MTc4MzUyNjQ2OA=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
