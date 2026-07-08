@@ -1,10 +1,12 @@
 // آفتاب‌یار — Service Worker
 // Caches the app shell so the estimator works fully offline.
 // Bump CACHE_VERSION whenever index.html/manifest/icons change so users get the update.
-const CACHE_VERSION = 'aftabyar-v2';
+const CACHE_VERSION = 'aftabyar-v5';
 const APP_SHELL = [
   './',
   './index.html',
+  './style.css',
+  './app.js',
   './manifest.json',
   './icon-192.png',
   './icon-512.png',
