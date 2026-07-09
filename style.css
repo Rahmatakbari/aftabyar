@@ -160,9 +160,10 @@ select{-webkit-appearance:none;appearance:none;padding-inline-start:32px;backgro
 
 /* QUOTE CARD */
 .quote-card{border:none;background:transparent;box-shadow:none;margin-top:16px;overflow:visible;}
-.quote-top{background:linear-gradient(135deg,#1E293B,#334155);border-radius:var(--r-lg) var(--r-lg) 0 0;padding:16px 18px;}
-.quote-top-inner{display:flex;align-items:center;justify-content:space-between;}
-.quote-top h3{color:#fff;font-size:1rem;font-weight:800;}
+.quote-top{background:linear-gradient(135deg,#0891B2,#0D9488);border-radius:var(--r-lg) var(--r-lg) 0 0;padding:18px 18px;position:relative;overflow:hidden;}
+.quote-top::before{content:"";position:absolute;top:-20px;inset-inline-end:-20px;width:80px;height:80px;background:radial-gradient(circle,rgba(255,255,255,.15),transparent 70%);pointer-events:none;}
+.quote-top-inner{display:flex;align-items:center;justify-content:space-between;position:relative;}
+.quote-top h3{color:#fff;font-size:1.02rem;font-weight:800;}
 .quote-badge{background:rgba(255,255,255,.15);color:#FBBF24;padding:3px 12px;border-radius:99px;font-size:.7rem;font-weight:700;}
 .quote-body{background:var(--surface);border:1px solid var(--line);border-top:none;border-radius:0 0 var(--r-lg) var(--r-lg);padding:16px;}
 .quote-brand{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
@@ -192,6 +193,63 @@ select{-webkit-appearance:none;appearance:none;padding-inline-start:32px;backgro
 .chart-svg-wrap{background:var(--bg2);border-radius:var(--r-sm);padding:10px 8px;}
 .chart-note{font-size:.7rem;color:var(--ink2);margin-top:8px;padding:8px 10px;background:var(--primary-soft);border-radius:var(--r-sm);border-inline-start:3px solid var(--primary);}
 
+/* Diagram — مدرن و طبیعی */
+.diag-card{overflow:hidden;}
+.diag-wrap{background:linear-gradient(160deg,var(--bg2),var(--surface));padding:12px 6px;border-radius:var(--r-md);position:relative;}
+.diag-wrap svg text{font-family:'Vazirmatn',system-ui,sans-serif;}
+.diag-wrap svg circle[fill="#fff"]{filter:drop-shadow(0 0 3px rgba(255,255,255,.6));}
+
+/* Roof — مساحت سقف */
+.roof-card{background:linear-gradient(135deg,#FFF7ED,#FFFFFF)!important;border:1px solid #FED7AA!important;}
+.roof-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.roof-stat{display:flex;align-items:center;gap:10px;padding:11px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r-md);}
+.roof-icon{width:34px;height:34px;border-radius:9px;background:#FFEDD5;display:grid;place-items:center;font-size:1rem;flex-shrink:0;}
+.roof-info{flex:1;min-width:0;}
+.roof-lbl{font-size:.66rem;color:var(--ink2);font-weight:600;margin-bottom:1px;}
+.roof-val{font-size:.92rem;font-weight:800;color:#C2410C;line-height:1.15;}
+.roof-sub{font-size:.62rem;color:var(--ink3);margin-top:2px;}
+.dark .roof-card{background:linear-gradient(135deg,#1C1917,var(--surface-2))!important;border-color:#7C2D12!important;}
+.dark .roof-icon{background:rgba(194,65,12,.18);}
+.dark .roof-val{color:#FB923C;}
+
+/* Sun Curve — منحنی تولید روزانه */
+.sun-curve-card{background:linear-gradient(135deg,#FFFBEB,var(--surface))!important;border:1px solid #FDE68A!important;}
+.sun-curve-total{margin-inline-start:auto;font-size:.95rem;font-weight:800;color:#B45309;background:#FEF3C7;padding:3px 12px;border-radius:99px;}
+.dark .sun-curve-card{background:linear-gradient(135deg,#1C1917,var(--surface-2))!important;border-color:#78350F!important;}
+.dark .sun-curve-total{background:rgba(245,158,11,.18);color:#FCD34D;}
+
+/* Eco removed */
+
+/* Sun Curve — منحنی تولید روزانه تعاملی */
+.sun-curve-card{background:linear-gradient(135deg,#FFFBEB,var(--surface))!important;border:1px solid #FDE68A!important;}
+.sun-curve-total{margin-inline-start:auto;font-size:.95rem;font-weight:800;color:#B45309;background:#FEF3C7;padding:3px 12px;border-radius:99px;}
+.sun-readout{display:flex;align-items:center;justify-content:center;gap:14px;padding:8px 0 4px;}
+.sun-readout .sr-time{font-size:1.3rem;font-weight:800;color:#B45309;line-height:1;}
+.sun-readout .sr-prod{font-size:1.15rem;font-weight:700;color:#92400E;line-height:1;}
+.sun-readout .sr-lbl{font-size:.62rem;color:var(--ink2);margin-top:2px;}
+.sun-readout .sr-col{text-align:center;}
+.sun-slider-wrap{margin-top:8px;padding:0 4px;}
+.sun-slider-wrap input[type=range]{width:100%;height:6px;-webkit-appearance:none;appearance:none;background:linear-gradient(90deg,#FEF3C7,#FBBF24,#FEF3C7);border-radius:99px;outline:none;}
+.sun-slider-wrap input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:24px;height:24px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#FDE68A,#F59E0B);border:2px solid #fff;box-shadow:0 2px 8px rgba(245,158,11,.45);cursor:pointer;}
+.sun-slider-wrap input[type=range]::-moz-range-thumb{width:24px;height:24px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#FDE68A,#F59E0B);border:2px solid #fff;box-shadow:0 2px 8px rgba(245,158,11,.45);cursor:pointer;border:none;}
+.sun-slider-labels{display:flex;justify-content:space-between;font-size:.6rem;color:var(--ink3);margin-top:6px;}
+.dark .sun-curve-card{background:linear-gradient(135deg,#1C1917,var(--surface-2))!important;border-color:#78350F!important;}
+.dark .sun-curve-total{background:rgba(245,158,11,.18);color:#FCD34D;}
+.dark .sun-readout .sr-time{color:#FCD34D;}
+.dark .sun-readout .sr-prod{color:#FBBF24;}
+.dark .sun-slider-wrap input[type=range]{background:linear-gradient(90deg,#292524,#78350F,#292524);}
+
+/* Dashboard Summary — خلاصه سیستم */
+.dash-card{background:linear-gradient(135deg,#F0F9FF,var(--surface))!important;border:1px solid #BAE6FD!important;}
+.dash-grid{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:6px;}
+.dash-stat{text-align:center;padding:10px 4px;}
+.dash-icon{font-size:1.15rem;margin-bottom:3px;}
+.dash-val{font-size:.92rem;font-weight:800;color:var(--ink);line-height:1.1;}
+.dash-lbl{font-size:.58rem;color:var(--ink2);margin-top:2px;}
+.dash-lbl small{font-size:.55rem;color:var(--ink3);}
+@media(max-width:360px){.dash-grid{grid-template-columns:1fr 1fr;}}
+.dark .dash-card{background:linear-gradient(135deg,#082F49,var(--surface-2))!important;border-color:#0C4A6E!important;}
+
 /* Protection */
 .prot-grid{display:grid;grid-template-columns:1fr;gap:8px;margin-bottom:8px;}
 @media(min-width:480px){.prot-grid{grid-template-columns:1fr 1fr;}}
@@ -205,16 +263,21 @@ select{-webkit-appearance:none;appearance:none;padding-inline-start:32px;backgro
 .dark .prot-label{color:var(--ink2);}
 
 /* Quote items */
-.quote-item{background:var(--surface-2);border:1px solid var(--line);border-radius:var(--r-md);padding:12px 14px;margin-bottom:6px;border-inline-start:3px solid var(--primary);}
-.qi-title{font-size:.82rem;font-weight:700;color:var(--ink);margin-bottom:6px;padding-bottom:6px;border-bottom:1px dashed var(--line);}
+.quote-item{background:var(--surface-2);border:1px solid var(--line);border-radius:var(--r-md);padding:12px 14px;margin-bottom:8px;border-inline-start:4px solid var(--primary);position:relative;transition:transform .15s,box-shadow .15s;}
+.quote-item:hover{transform:translateY(-1px);box-shadow:var(--sh-sm);}
+.qi-title{font-size:.84rem;font-weight:700;color:var(--ink);margin-bottom:8px;padding-bottom:8px;border-bottom:1px dashed var(--line);display:flex;align-items:center;gap:6px;}
 .qi-row{display:flex;justify-content:space-between;padding:3px 0;font-size:.74rem;color:var(--ink2);}
+.qi-row span{color:var(--ink3);}
 .qi-row b{color:var(--ink);font-weight:700;}
-.qi-row:last-child b{color:var(--amber);font-size:.88rem;font-weight:800;}
+.qi-row:last-child{margin-top:2px;padding-top:6px;border-top:1px dotted var(--line);}
+.qi-row:last-child b{color:var(--amber);font-size:.92rem;font-weight:800;}
 
 /* Totals */
-.totals-card{background:linear-gradient(135deg,#1E293B,#334155);border-radius:var(--r-md);padding:16px;margin-top:10px;color:#fff;}
-.totals-card .total-line{display:flex;justify-content:space-between;align-items:center;font-size:.9rem;font-weight:700;}
-.totals-card .total-line b{color:#FBBF24;font-size:1.25rem;font-weight:800;letter-spacing:-.01em;}
+.totals-card{background:linear-gradient(135deg,#0F172A,#1E293B);border-radius:var(--r-md);padding:18px;margin-top:12px;color:#fff;position:relative;overflow:hidden;box-shadow:0 6px 20px rgba(15,23,42,.18);}
+.totals-card::before{content:"";position:absolute;top:-30px;left:-30px;width:120px;height:120px;background:radial-gradient(circle,rgba(245,158,11,.18),transparent 70%);pointer-events:none;}
+.totals-card .total-line{display:flex;justify-content:space-between;align-items:center;}
+.totals-card .total-line span{font-size:.8rem;font-weight:600;color:rgba(255,255,255,.7);}
+.totals-card .total-line b{color:#FBBF24;font-size:1.45rem;font-weight:800;letter-spacing:-.02em;}
 .notes-box{margin-top:10px;padding:12px;background:var(--amber-soft);border-radius:var(--r-md);font-size:.76rem;line-height:1.7;color:var(--ink);}
 .dark .notes-box{color:var(--ink);}
 
