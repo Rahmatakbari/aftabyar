@@ -1,7 +1,16 @@
 (function(){
-  if(window.pdfjsLib){
-    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+  // Configure pdf.js worker as soon as the library becomes available.
+  // Because the CDN scripts now use defer, pdfjsLib may not be ready yet
+  // when app.js first runs, so we retry until it loads (or give up).
+  let _pdfTries=0;
+  function setupPdfWorker(){
+    if(window.pdfjsLib){
+      pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+      return;
+    }
+    if(_pdfTries++<40){setTimeout(setupPdfWorker,250);} // ~10s total
   }
+  setupPdfWorker();
 })();
 (function(){
 "use strict";
@@ -368,10 +377,16 @@ if(addAppBtn)addAppBtn.addEventListener('click',()=>{addApp();recalc();});
 
 /* ===== ENGINEERING ===== */
 const PANEL_SPECS={
-  400:{vmp:37.1,imp:10.8},450:{vmp:41.4,imp:10.9},500:{vmp:41.7,imp:12.0},
-  550:{vmp:41.7,imp:13.2},600:{vmp:45.5,imp:13.2},650:{vmp:46.9,imp:13.9},
-  700:{vmp:38.7,imp:18.1}
+  400:{vmp:37.1,imp:10.8,dims:{w:2.09,h:1.04,area:2.18}},
+  450:{vmp:41.4,imp:10.9,dims:{w:2.09,h:1.04,area:2.18}},
+  500:{vmp:41.7,imp:12.0,dims:{w:2.21,h:1.10,area:2.43}},
+  550:{vmp:41.7,imp:13.2,dims:{w:2.27,h:1.13,area:2.57}},
+  600:{vmp:45.5,imp:13.2,dims:{w:2.30,h:1.13,area:2.60}},
+  650:{vmp:46.9,imp:13.9,dims:{w:2.33,h:1.13,area:2.64}},
+  700:{vmp:38.7,imp:18.1,dims:{w:2.48,h:1.30,area:3.22}}
 };
+// تخمین ابعاد پنل اگر توان در جدول نبود (≈ 0.0042 m²/W)
+const panelArea=w=>(PANEL_SPECS[w]?.dims?.area)||(0.0042*w);
 const BATT_CHEM={
   lithium:{dod:.90,cRate:.5,caps:[100,150,200,280],life:6000},
   'li-ion':{dod:.85,cRate:.5,caps:[100,150,200],life:3000},
@@ -423,69 +438,185 @@ function calcProt(sT,w,bCable,bV,invKw,spec){
   return r;
 }
 
-/* ===== SVG DIAGRAM ===== */
+/* ===== SVG DIAGRAM (مدرن و طبیعی) ===== */
+/* آیکن‌های SVG تمیز به‌جای emoji */
+function svgIcon(type, cx, cy, s){
+  const p=[];
+  if(type==='sun'){
+    p.push('<g stroke="#fff" stroke-width="'+(s*0.09)+'" stroke-linecap="round">');
+    for(let i=0;i<8;i++){const a=i*Math.PI/4;p.push('<line x1="'+(cx+Math.cos(a)*s*0.42)+'" y1="'+(cy+Math.sin(a)*s*0.42)+'" x2="'+(cx+Math.cos(a)*s*0.62)+'" y2="'+(cy+Math.sin(a)*s*0.62)+'"/>');}
+    p.push('</g><circle cx="'+cx+'" cy="'+cy+'" r="'+(s*0.30)+'" fill="#fff" opacity="0.95"/>');
+  }else if(type==='panel'){
+    // پنل خورشیدی مدرن
+    const w=s*0.7,h=s*0.5;
+    p.push('<g transform="translate('+(cx-w/2)+','+(cy-h/2)+')">');
+    p.push('<rect x="0" y="0" width="'+w+'" height="'+h+'" rx="3" fill="none" stroke="#fff" stroke-width="1.5"/>');
+    for(let i=1;i<4;i++){p.push('<line x1="'+(w*i/4)+'" y1="0" x2="'+(w*i/4)+'" y2="'+h+'" stroke="#fff" stroke-width="1" opacity="0.6"/>');}
+    p.push('<line x1="0" y1="'+(h/2)+'" x2="'+w+'" y2="'+(h/2)+'" stroke="#fff" stroke-width="1" opacity="0.6"/>');
+    p.push('</g>');
+  }else if(type==='inverter'){
+    // اینورتر - جعبه مدرن با صفحه نمایش
+    const w=s*0.6,h=s*0.55;
+    p.push('<g transform="translate('+(cx-w/2)+','+(cy-h/2)+')">');
+    p.push('<rect x="0" y="0" width="'+w+'" height="'+h+'" rx="4" fill="none" stroke="#fff" stroke-width="1.5"/>');
+    p.push('<rect x="'+(w*0.15)+'" y="'+(h*0.2)+'" width="'+(w*0.7)+'" height="'+(h*0.3)+'" rx="2" fill="#fff" opacity="0.25"/>');
+    p.push('<circle cx="'+(w*0.25)+'" cy="'+(h*0.72)+'" r="2" fill="#fff" opacity="0.7"/>');
+    p.push('<circle cx="'+(w*0.45)+'" cy="'+(h*0.72)+'" r="2" fill="#fff" opacity="0.5"/>');
+    p.push('<circle cx="'+(w*0.65)+'" cy="'+(h*0.72)+'" r="2" fill="#fff" opacity="0.5"/>');
+    p.push('</g>');
+  }else if(type==='battery'){
+    // باتری مدرن
+    const w=s*0.55,h=s*0.4;
+    p.push('<g transform="translate('+(cx-w/2)+','+(cy-h/2)+')">');
+    p.push('<rect x="0" y="0" width="'+w+'" height="'+h+'" rx="3" fill="none" stroke="#fff" stroke-width="1.5"/>');
+    p.push('<rect x="'+(-3)+'" y="'+(h*0.3)+'" width="3" height="'+(h*0.4)+'" rx="1" fill="#fff"/>');
+    // درصدهای شارژ
+    p.push('<rect x="'+(w*0.15)+'" y="'+(h*0.2)+'" width="'+(w*0.2)+'" height="'+(h*0.6)+'" rx="1" fill="#fff" opacity="0.9"/>');
+    p.push('<rect x="'+(w*0.4)+'" y="'+(h*0.2)+'" width="'+(w*0.2)+'" height="'+(h*0.6)+'" rx="1" fill="#fff" opacity="0.6"/>');
+    p.push('<rect x="'+(w*0.65)+'" y="'+(h*0.2)+'" width="'+(w*0.2)+'" height="'+(h*0.6)+'" rx="1" fill="#fff" opacity="0.3"/>');
+    p.push('</g>');
+  }else if(type==='grid'){
+    // برق شهری - پریز/ستون
+    const w=s*0.5,h=s*0.5;
+    p.push('<g transform="translate('+(cx-w/2)+','+(cy-h/2)+'">');
+    p.push('<path d="M'+(w*0.2)+','+h+' L'+(w*0.2)+','+(h*0.3)+' L'+(w*0.5)+',0 L'+(w*0.8)+','+(h*0.3)+' L'+(w*0.8)+','+h+'" fill="none" stroke="#fff" stroke-width="1.5" stroke-linejoin="round"/>');
+    p.push('<line x1="0" y1="'+h+'" x2="'+w+'" y2="'+h+'" stroke="#fff" stroke-width="1.5" stroke-linecap="round"/>');
+    p.push('<line x1="'+(w*0.35)+'" y1="'+(h*0.5)+'" x2="'+(w*0.65)+'" y2="'+(h*0.5)+'" stroke="#fff" stroke-width="1" opacity="0.6"/>');
+    p.push('</g>');
+  }else if(type==='home'){
+    // خانه
+    const w=s*0.6,h=s*0.5;
+    p.push('<g transform="translate('+(cx-w/2)+','+(cy-h/2)+'">');
+    p.push('<path d="M'+(w*0.1)+','+(h*0.55)+' L'+(w*0.5)+','+(h*0.1)+' L'+(w*0.9)+','+(h*0.55)+' L'+(w*0.9)+','+h+' L'+(w*0.1)+','+h+' Z" fill="none" stroke="#fff" stroke-width="1.5" stroke-linejoin="round"/>');
+    p.push('<rect x="'+(w*0.38)+'" y="'+(h*0.6)+'" width="'+(w*0.24)+'" height="'+(h*0.4)+'" rx="1" fill="#fff" opacity="0.3"/>');
+    p.push('</g>');
+  }else if(type==='controller'){
+    // شارژ کنترلر - چرخ‌دنده ساده
+    p.push('<g fill="none" stroke="#fff" stroke-width="1.5">');
+    p.push('<circle cx="'+cx+'" cy="'+cy+'" r="'+(s*0.22)+'"/>');
+    p.push('<circle cx="'+cx+'" cy="'+cy+'" r="'+(s*0.08)+'" fill="#fff"/>');
+    for(let i=0;i<6;i++){const a=i*Math.PI/3;p.push('<rect x="'+(cx-1)+'" y="'+(cy-s*0.30)+'" width="2" height="'+(s*0.1)+'" fill="#fff" transform="rotate('+(i*60)+' '+cx+' '+cy+')"/>');}
+    p.push('</g>');
+  }
+  return p.join('');
+}
 const SVG_M='<defs>'+
   '<marker id="ah" markerWidth="10" markerHeight="10" refX="7" refY="4" orient="auto"><path d="M0,0 L0,8 L8,4 z" fill="#0D9488"/></marker>'+
-  '<linearGradient id="panelGrad" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="#FBBF24"/><stop offset="100%" stop-color="#F59E0B"/></linearGradient>'+
-  '<linearGradient id="inverterGrad" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="#14B8A6"/><stop offset="100%" stop-color="#0D9488"/></linearGradient>'+
-  '<linearGradient id="batteryGrad" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="#A78BFA"/><stop offset="100%" stop-color="#8B5CF6"/></linearGradient>'+
-  '<linearGradient id="gridGrad" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="#60A5FA"/><stop offset="100%" stop-color="#3B82F6"/></linearGradient>'+
-  '<linearGradient id="loadGrad" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="#F87171"/><stop offset="100%" stop-color="#EF4444"/></linearGradient>'+
-  '<filter id="softShadow" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur in="SourceAlpha" stdDeviation="2"/><feOffset dx="0" dy="2" result="offsetblur"/><feComponentTransfer><feFuncA type="linear" slope="0.15"/></feComponentTransfer><feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge></filter>'+
+  // گرادیان‌های ملایم و طبیعی‌تر
+  '<linearGradient id="panelGrad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#FCD34D"/><stop offset="100%" stop-color="#F59E0B"/></linearGradient>'+
+  '<linearGradient id="inverterGrad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#2DD4BF"/><stop offset="100%" stop-color="#0D9488"/></linearGradient>'+
+  '<linearGradient id="batteryGrad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#C4B5FD"/><stop offset="100%" stop-color="#8B5CF6"/></linearGradient>'+
+  '<linearGradient id="gridGrad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#60A5FA"/><stop offset="100%" stop-color="#3B82F6"/></linearGradient>'+
+  '<linearGradient id="loadGrad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#FCA5A5"/><stop offset="100%" stop-color="#EF4444"/></linearGradient>'+
+  '<linearGradient id="controllerGrad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#5EEAD4"/><stop offset="100%" stop-color="#14B8A6"/></linearGradient>'+
+  // سایه نرم و طبیعی
+  '<filter id="softShadow" x="-30%" y="-30%" width="160%" height="160%"><feDropShadow dx="0" dy="3" stdDeviation="3" flood-color="#0F172A" flood-opacity="0.18"/></filter>'+
+  // گرادیان مسیر جریان (برای خطوط)
+  '<linearGradient id="wireDC" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="#0D9488"/><stop offset="100%" stop-color="#0891B2"/></linearGradient>'+
+  '<linearGradient id="wireAC" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="#3B82F6"/><stop offset="100%" stop-color="#2563EB"/></linearGradient>'+
   '</defs>';
-function svgBox(x,y,w,h,lines,gradId,iconEmoji){
-  const lh=12,is=iconEmoji?16:0,csy=y+12+is;
-  let t='';lines.forEach((l,i)=>{t+='<text x="'+(x+w/2)+'" y="'+(csy+i*lh+4)+'" text-anchor="middle" font-size="10" font-family="Vazirmatn,system-ui,sans-serif" fill="#FFFFFF" font-weight="'+(i===0?'700':'500')+'">'+esc(l)+'</text>';});
-  const icon=iconEmoji?'<text x="'+(x+w/2)+'" y="'+(y+18)+'" text-anchor="middle" font-size="14">'+iconEmoji+'</text>':'';
-  return '<rect x="'+x+'" y="'+y+'" width="'+w+'" height="'+h+'" rx="12" fill="url(#'+gradId+')" filter="url(#softShadow)"/>'+icon+t;
+// کارت جزء مدرن: آیکن در دایره نیمه‌شفاف بالا، خط جداکننده، متن‌های خوانا در پایین
+function svgBox(x,y,w,h,lines,gradId,iconType){
+  const cx=x+w/2;
+  // آیکن در یک دایره سفید نیمه‌شفاف در بالای کارت
+  const iconCY=y+19;
+  const iconBg='<circle cx="'+cx+'" cy="'+iconCY+'" r="15" fill="rgba(255,255,255,0.22)"/>';
+  // خط جداکننده نازک بین بخش آیکن و متن
+  const sepY=y+h-32;
+  const sep='<line x1="'+(x+w*0.18)+'" y1="'+sepY+'" x2="'+(x+w*0.82)+'" y2="'+sepY+'" stroke="rgba(255,255,255,0.18)" stroke-width="1"/>';
+  // متن‌ها: عنوان بزرگ در خط اول، جزئیات کوچک‌تر در خط دوم
+  let t='';
+  const n=lines.length;
+  lines.forEach((l,i)=>{
+    const ty=y+h-16+(i-(n-1))*15; // متن‌ها به سمت بالا از پایین کارت رشد می‌کنند، وسط‌چین حول نقطه پایه
+    const isTitle=i===0;
+    t+='<text x="'+cx+'" y="'+ty+'" text-anchor="middle" font-size="'+(isTitle?'10.5':'8.5')+'" font-family="Vazirmatn,system-ui,sans-serif" fill="#FFFFFF" font-weight="'+(isTitle?'700':'500')+'" opacity="'+(isTitle?'1':'.82')+'">'+esc(l)+'</text>';
+  });
+  return '<rect x="'+x+'" y="'+y+'" width="'+w+'" height="'+h+'" rx="14" fill="url(#'+gradId+')" filter="url(#softShadow)"/>'+iconBg+svgIcon(iconType,cx,iconCY,20)+sep+t;
 }
-function svgArr(x1,y1,x2,y2,lbl,side){
-  side=side||'right';const mx=(x1+x2)/2,my=(y1+y2)/2;
+// خط اتصال منحنی با انیمیشن جریان
+function svgArr(x1,y1,x2,y2,lbl,side,wireColor){
+  side=side||'right';wireColor=wireColor||'#0D9488';
+  const isVertical=Math.abs(y2-y1)>Math.abs(x2-x1);
+  let pathD, animateD='';
+  if(isVertical){
+    pathD='M'+x1+','+y1+' L'+x2+','+y2;
+    animateD=pathD;
+  }else{
+    // منحنی نرم برای اتصالات افقی
+    const mx=(x1+x2)/2;
+    pathD='M'+x1+','+y1+' C'+mx+','+y1+' '+mx+','+y2+' '+x2+','+y2;
+    animateD=pathD;
+  }
+  const mx=(x1+x2)/2,my=(y1+y2)/2;
+  // همیشه وسط‌چین: متن دقیقاً وسط قرص برچسب قرار می‌گیرد
   let lx=mx,ly=my,anch='middle';
-  if(side==='right'){lx=mx+8;anch='start';}else if(side==='left'){lx=mx-8;anch='end';}
-  const lblLen=esc(lbl||'').length,bgW=lblLen*4.5+10;
-  const bgX=anch==='start'?lx-4:anch==='end'?lx-bgW+4:lx-bgW/2;
-  const bg=lbl?'<rect x="'+bgX+'" y="'+(ly-8)+'" width="'+bgW+'" height="14" rx="7" fill="#FFFFFF" stroke="#F59E0B" stroke-width="1"/>':'';
-  const lt=lbl?'<text x="'+lx+'" y="'+(ly+3)+'" text-anchor="'+anch+'" font-size="9" font-family="Vazirmatn,system-ui,sans-serif" fill="#B45309" font-weight="700">'+esc(lbl)+'</text>':'';
-  return '<line x1="'+x1+'" y1="'+y1+'" x2="'+x2+'" y2="'+y2+'" stroke="#0D9488" stroke-width="2.5" stroke-linecap="round" marker-end="url(#ah)"/>'+bg+lt;
+  // برای اتصالات عمودی، برچسب را کمی بالاتر از وسط بگذار تا روی کارت نیفتد
+  if(isVertical){ly=my;}
+  // برای اتصالات افقی (hybrid)، برچسب در وسط منحنی
+  const lblLen=esc(lbl||'').length,bgW=lblLen*4.8+12;
+  const bgX=anch==='start'?lx-5:anch==='end'?lx-bgW+5:lx-bgW/2;
+  const bg=lbl?'<rect x="'+bgX+'" y="'+(ly-9)+'" width="'+bgW+'" height="16" rx="8" fill="#FFFFFF" stroke="'+wireColor+'" stroke-width="1.2" filter="url(#softShadow)"/>':'';
+  const lt=lbl?'<text x="'+lx+'" y="'+(ly+4)+'" text-anchor="'+anch+'" font-size="8.5" font-family="Vazirmatn,system-ui,sans-serif" fill="'+wireColor+'" font-weight="700">'+esc(lbl)+'</text>':'';
+  // انیمیشن نقاط جریان (حرکت به‌سمت پایین/جلو)
+  const flowAnim='<circle r="2.5" fill="#fff" opacity="0.9"><animateMotion dur="2s" repeatCount="indefinite" path="'+animateD+'"/><animate attributeName="opacity" values="0;0.9;0.9;0" dur="2s" repeatCount="indefinite"/></circle>'+
+                 '<circle r="1.8" fill="#fff" opacity="0.6"><animateMotion dur="2s" begin="0.7s" repeatCount="indefinite" path="'+animateD+'"/><animate attributeName="opacity" values="0;0.6;0.6;0" dur="2s" begin="0.7s" repeatCount="indefinite"/></circle>';
+  return '<path d="'+pathD+'" stroke="'+wireColor+'" stroke-width="2.5" fill="none" stroke-linecap="round" marker-end="url(#ah)"/>'+flowAnim+bg+lt;
 }
 function buildDiag(sT,nP,wP,prot,bInfo){
   const pL=['پنل خورشیدی',toFa(nP)+'×'+toFa(wP)+'W'];
   const pvB=prot.sFuseNeeded?'MCB '+toFa(prot.pvBrk)+'A + فیوز '+toFa(prot.sFuse)+'A':'MCB '+toFa(prot.pvBrk)+'A';
-  if(sT==='ongrid')return{vb:'0 0 320 340',body:
-    svgBox(70,10,180,50,pL,'panelGrad','☀️')+
-    svgArr(160,60,160,100,pvB,'right')+
-    svgBox(70,100,180,50,['اینورتر آن‌گرید'],'inverterGrad','🔌')+
-    svgArr(160,150,160,190,'AC '+toFa(prot.acOut)+'A','right')+
-    svgBox(70,190,180,50,['تابلو برق'],'loadGrad','🏠')+
-    svgArr(160,240,160,280,'AC '+toFa(prot.acGrid)+'A','right')+
-    svgBox(70,280,180,50,['برق شهری'],'gridGrad','⚡')};
-  if(sT==='offgrid')return{vb:'0 0 320 430',body:
-    svgBox(70,10,180,50,pL,'panelGrad','☀️')+
-    svgArr(160,60,160,100,pvB,'right')+
-    svgBox(70,100,180,50,['شارژ کنترلر'],'inverterGrad','🎛️')+
-    svgArr(160,150,160,190,prot.bBrk?'باتری '+toFa(prot.bBrk)+'A':'','right')+
-    svgBox(70,190,180,50,['باتری',bInfo],'batteryGrad','🔋')+
-    svgArr(160,240,160,280,'','right')+
-    svgBox(70,280,180,50,['اینورتر'],'inverterGrad','⚙️')+
-    svgArr(160,330,160,370,'AC '+toFa(prot.acOut)+'A','right')+
-    svgBox(70,370,180,50,['لودها'],'loadGrad','🏠')};
-  return{vb:'0 0 400 260',body:
-    svgBox(110,8,180,50,pL,'panelGrad','☀️')+
-    svgArr(200,58,200,96,pvB,'right')+
-    svgBox(110,96,180,54,['اینورتر هیبریدی'],'inverterGrad','⚡')+
-    svgArr(170,150,70,190,prot.bBrk?toFa(prot.bBrk)+'A':'','left')+
-    svgBox(10,190,120,50,['باتری',bInfo],'batteryGrad','🔋')+
-    svgArr(200,150,200,190,'AC '+toFa(prot.acOut)+'A','right')+
-    svgBox(140,190,120,50,['لودها'],'loadGrad','🏠')+
-    svgArr(290,150,360,190,prot.acGrid?toFa(prot.acGrid)+'A':'','right')+
-    svgBox(300,190,90,50,['شبکه'],'gridGrad','⚡')};
+  const cardH=64, gap=36; // ارتفاع بیشتر + فاصله اتصال منظم
+  const X=60, W=200, CX=X+W/2;
+  if(sT==='ongrid'){
+    const y0=12;
+    const y1=y0+cardH+gap, y2=y1+cardH+gap, y3=y2+cardH+gap;
+    return{vb:'0 0 320 '+(y3+cardH+14),body:
+      svgBox(X,y0,W,cardH,pL,'panelGrad','sun')+
+      svgArr(CX,y0+cardH,CX,y1,pvB,'center','#0D9488')+
+      svgBox(X,y1,W,cardH,['اینورتر آن‌گرید'],'inverterGrad','inverter')+
+      svgArr(CX,y1+cardH,CX,y2,'AC '+toFa(prot.acOut)+'A','center','#3B82F6')+
+      svgBox(X,y2,W,cardH,['تابلو برق'],'loadGrad','home')+
+      svgArr(CX,y2+cardH,CX,y3,'AC '+toFa(prot.acGrid)+'A','center','#3B82F6')+
+      svgBox(X,y3,W,cardH,['برق شهری'],'gridGrad','grid')};
+  }
+  if(sT==='offgrid'){
+    const y0=12;
+    const y1=y0+cardH+gap, y2=y1+cardH+gap, y3=y2+cardH+gap, y4=y3+cardH+gap;
+    return{vb:'0 0 320 '+(y4+cardH+14),body:
+      svgBox(X,y0,W,cardH,pL,'panelGrad','sun')+
+      svgArr(CX,y0+cardH,CX,y1,pvB,'center','#0D9488')+
+      svgBox(X,y1,W,cardH,['شارژ کنترلر'],'controllerGrad','controller')+
+      svgArr(CX,y1+cardH,CX,y2,prot.bBrk?'باتری '+toFa(prot.bBrk)+'A':'','center','#8B5CF6')+
+      svgBox(X,y2,W,cardH,['باتری',bInfo],'batteryGrad','battery')+
+      svgArr(CX,y2+cardH,CX,y3,'','center','#0D9488')+
+      svgBox(X,y3,W,cardH,['اینورتر'],'inverterGrad','inverter')+
+      svgArr(CX,y3+cardH,CX,y4,'AC '+toFa(prot.acOut)+'A','center','#3B82F6')+
+      svgBox(X,y4,W,cardH,['لودها'],'loadGrad','home')};
+  }
+  // hybrid: پنل بالا → اینورتر وسط → (باتری + لودها + شبکه) پایین
+  const topH=62, botH=60, gap2=34;
+  const yP=8;                    // کارت پنل
+  const yI=yP+topH+gap2;         // کارت اینورتر (وسط)
+  const yB=yI+topH+gap2;         // ردیف پایین (باتری/لودها/شبکه)
+  return{vb:'0 0 400 '+(yB+botH+14),body:
+    svgBox(110,yP,180,topH,pL,'panelGrad','sun')+
+    svgArr(200,yP+topH,200,yI,pvB,'center','#0D9488')+
+    svgBox(110,yI,180,topH,['اینورتر هیبریدی'],'inverterGrad','inverter')+
+    svgArr(150,yI+topH-6,70,yB+6,prot.bBrk?toFa(prot.bBrk)+'A':'','left','#8B5CF6')+
+    svgBox(10,yB,120,botH,['باتری',bInfo],'batteryGrad','battery')+
+    svgArr(200,yI+topH-6,200,yB+6,'AC '+toFa(prot.acOut)+'A','right','#3B82F6')+
+    svgBox(140,yB,120,botH,['لودها'],'loadGrad','home')+
+    svgArr(290,yI+topH-6,360,yB+6,prot.acGrid?toFa(prot.acGrid)+'A':'','right','#3B82F6')+
+    svgBox(300,yB,90,botH,['شبکه'],'gridGrad','grid')};
 }
 function renderDiag(sT,nP,wP,prot,bKwh,bV){
   const box=$('#diagramBox');if(!box)return;
   const bi=sT!=='ongrid'?num(bKwh,1)+'kWh / '+toFa(bV)+'V':'';
   const d=buildDiag(sT,nP,wP,prot,bi);
-  box.innerHTML='<div class="chart-card"><div class="chart-head"><span class="chart-icon">🗺️</span><h4>شماتیک سیستم</h4></div><div class="chart-svg-wrap"><svg viewBox="'+d.vb+'" style="width:100%;height:auto;display:block;">'+SVG_M+d.body+'</svg></div><p class="chart-note">💡 ساده‌شده — ارت و SPD در نقشه نهایی اضافه شود.</p></div>';
+  const title=currentLang==='en'?'System Diagram':'شماتیک سیستم';
+  const note=currentLang==='en'?'Simplified — add earthing & SPD in final design.':'ساده‌شده — ارت و SPD در نقشه نهایی اضافه شود.';
+  box.innerHTML='<div class="chart-card diag-card"><div class="chart-head"><span class="chart-icon">🗺️</span><h4>'+title+'</h4></div><div class="chart-svg-wrap diag-wrap"><svg viewBox="'+d.vb+'" style="width:100%;height:auto;display:block;">'+SVG_M+d.body+'</svg></div><p class="chart-note">💡 '+note+'</p></div>';
 }
 function renderChart(dKwh){
   const box=$('#consumptionChartBox');if(!box)return;
@@ -520,6 +651,63 @@ function renderChart(dKwh){
   box.innerHTML='<div class="chart-card"><div class="chart-head"><span class="chart-icon">📊</span><h4>'+(currentLang==='en'?'Electricity consumption':'مصرف برق')+'</h4></div><div class="chart-svg-wrap"><svg viewBox="0 0 '+vbW+' 200" style="width:100%;height:auto;display:block;">'+defs+'<line x1="15" y1="'+baseY+'" x2="'+(vbW-15)+'" y2="'+baseY+'" stroke="'+lineColor+'" stroke-width="1.5" stroke-dasharray="3,3"/>'+bars+'</svg></div></div>';
 }
 
+/* ===== ROOF CALCULATION (مساحت سقف) ===== */
+function renderRoof(nP,wP,sT){
+  const box=$('#roofBox');if(!box)return;
+  if(!nP||nP<=0){box.innerHTML='';return;}
+  const isEn=currentLang==='en';
+  const pArea=panelArea(wP);
+  const panelsArea=nP*pArea;
+  const spacingFactor=1.6;
+  const totalRoofArea=panelsArea*spacingFactor;
+  const sunH=+($('#sunHours')?.value)||5;
+  const lat=sunH>5.6?34:sunH<5.3?37:35;
+  const tilt=lat;
+  const winterTilt=Math.round(lat+10);
+  const summerTilt=Math.round(lat-10);
+  const panelKg=27+wP*0.04;
+  const totalKg=nP*panelKg;
+  const kgPerM2=totalRoofArea>0?totalKg/totalRoofArea:0;
+  const dirLabel=isEn?'South (facing sun)':'جنوب (رو به آفتاب)';
+  const title=isEn?'🏠 Roof & Installation':'🏠 سقف و نصب';
+  box.innerHTML='<div class="chart-card roof-card">'+
+    '<div class="chart-head"><span class="chart-icon">🏠</span><h4>'+title+'</h4></div>'+
+    '<div class="roof-grid">'+
+      '<div class="roof-stat">'+
+        '<div class="roof-icon">📐</div>'+
+        '<div class="roof-info"><div class="roof-lbl">'+(isEn?'Total area':'مساحت کل')+'</div>'+
+        '<div class="roof-val">'+num(totalRoofArea,1)+' m²</div>'+
+        '<div class="roof-sub">'+(isEn?'incl. spacing & walkways':'با فاصله و راهرو')+'</div></div>'+
+      '</div>'+
+      '<div class="roof-stat">'+
+        '<div class="roof-icon">🔲</div>'+
+        '<div class="roof-info"><div class="roof-lbl">'+(isEn?'Panel area only':'فقط مساحت پنل')+'</div>'+
+        '<div class="roof-val">'+num(panelsArea,1)+' m²</div>'+
+        '<div class="roof-sub">'+toFa(nP)+' × '+num(pArea,2)+' m²</div></div>'+
+      '</div>'+
+      '<div class="roof-stat">'+
+        '<div class="roof-icon">🧭</div>'+
+        '<div class="roof-info"><div class="roof-lbl">'+(isEn?'Direction':'جهت')+'</div>'+
+        '<div class="roof-val">'+dirLabel+'</div>'+
+        '<div class="roof-sub">'+(isEn?'Optimal for N. hemisphere':'بهینه نیمکره شمالی')+'</div></div>'+
+      '</div>'+
+      '<div class="roof-stat">'+
+        '<div class="roof-icon">📐</div>'+
+        '<div class="roof-info"><div class="roof-lbl">'+(isEn?'Tilt angle':'زاویه شیب')+'</div>'+
+        '<div class="roof-val">'+toFa(tilt)+'°</div>'+
+        '<div class="roof-sub">'+(isEn?'Summer':'تابستان')+' '+toFa(summerTilt)+'° • '+(isEn?'Winter':'زمستان')+' '+toFa(winterTilt)+'°</div></div>'+
+      '</div>'+
+      '<div class="roof-stat">'+
+        '<div class="roof-icon">⚖️</div>'+
+        '<div class="roof-info"><div class="roof-lbl">'+(isEn?'Total weight':'وزن کل')+'</div>'+
+        '<div class="roof-val">'+num(totalKg,0)+' kg</div>'+
+        '<div class="roof-sub">'+num(kgPerM2,1)+' kg/m² '+(isEn?'on roof':'روی سقف')+'</div></div>'+
+      '</div>'+
+    '</div>'+
+    '<p class="chart-note">⚠️ '+(isEn?'Check roof load capacity before installation. Flat roofs may need ballasted mounts.':'قبل از نصب، تحمل باری سقف را بررسی کنید. سقف‌های مسطح نیاز به پایه‌های وزنه‌دار دارند.')+'</p>'+
+  '</div>';
+}
+
 /* ===== PROTECTION & BANNER RENDERERS ===== */
 function renderProt(sT,p){
   const box=$('#protectionResults');if(!box)return;
@@ -533,6 +721,120 @@ function renderProt(sT,p){
     '<div class="prot-item" style="background:'+it.bg+';"><div class="prot-icon">'+it.icon+'</div><div class="prot-info"><div class="prot-label">'+it.label+'</div><div class="prot-value" style="color:'+it.color+';">'+it.value+'</div></div></div>'
   ).join('')+'</div><p class="chart-note" style="margin-top:10px;">⚠️ '+(currentLang==='en'?'Final approval by a licensed electrician is required.':'تایید نهایی توسط برق‌کار مجاز الزامی است.')+'</p>';
 }
+/* ===== SUN PRODUCTION CURVE (منحنی تولید روزانه تعاملی) ===== */
+let _sunCurve=null;       // داده‌های منحنی برای به‌روزرسانی نشانگر
+let _sunCurveHour=12;     // ساعت انتخاب‌شده
+(function(){
+  // تنظیم خودکار به ساعت فعلی روز
+  const now=new Date();
+  _sunCurveHour=Math.max(5,Math.min(19,now.getHours()+now.getMinutes()/60));
+  _sunCurveHour=Math.round(_sunCurveHour*2)/2; // گرد به نیم ساعت
+})();
+function _sunProdAt(h,sunH,actualKw,eff){
+  const noon=12,start=noon-sunH/2,end=noon+sunH/2;
+  if(h<start||h>end)return 0;
+  const x=(h-noon)/(sunH/2);
+  return Math.max(0,Math.cos(x*Math.PI/2))*actualKw*eff;
+}
+// فقط نشانگر را حرکت بده (بدون ریساختن کل نمودار)
+function updateSunMarker(){
+  if(!_sunCurve)return;
+  const d=_sunCurve;
+  const prod=_sunProdAt(_sunCurveHour,d.sunH,d.actualKw,d.eff);
+  const px=d.sx(_sunCurveHour).toFixed(1);
+  const py=d.sy(Math.min(prod,d.maxProd)).toFixed(1);
+  const dot=$('#sunMarkerDot'),glow=$('#sunMarkerGlow'),ln=$('#sunMarkerLine'),txt=$('#sunMarkerTxt');
+  if(dot){dot.setAttribute('cx',px);dot.setAttribute('cy',py);}
+  if(glow){glow.setAttribute('cx',px);glow.setAttribute('cy',py);}
+  if(ln){ln.setAttribute('x1',px);ln.setAttribute('x2',px);}
+  if(txt){txt.setAttribute('x',px);txt.setAttribute('y',(py-10).toFixed(1));txt.textContent=num(prod,1)+'kW';}
+  const srTime=$('#srTime'),srProd=$('#srProd');
+  const hh=Math.floor(_sunCurveHour),mm=Math.round((_sunCurveHour-hh)*60);
+  if(srTime)srTime.textContent=toFa(hh)+':'+toFa(mm<10?'0'+mm:mm);
+  if(srProd)srProd.textContent=(prod>0?num(prod,2):'۰')+' kW';
+}
+function renderSunCurve(actualKw,sunH,eff){
+  const box=$('#sunCurveBox');if(!box)return;
+  if(actualKw<=0){box.innerHTML='';_sunCurve=null;return;}
+  const isEn=currentLang==='en';
+  const isDark=document.documentElement.classList.contains('dark');
+  const noon=12,start=noon-sunH/2,end=noon+sunH/2;
+  const pts=[];
+  for(let h=5;h<=19;h+=0.5){
+    let prod=0;
+    if(h>=start&&h<=end){const x=(h-noon)/(sunH/2);prod=Math.max(0,Math.cos(x*Math.PI/2))*actualKw*eff;}
+    pts.push({h,prod});
+  }
+  const W=320,H=150,padL=26,padR=14,padT=18,padB=28;
+  const plotW=W-padL-padR,plotH=H-padT-padB;
+  const maxProd=Math.max(...pts.map(p=>p.prod))||1;
+  const sx=h=>padL+((h-5)/(19-5))*plotW;
+  const sy=p=>padT+plotH-(p/maxProd)*plotH;
+  _sunCurve={sx,sy,sunH,actualKw,eff,maxProd,H,padT,plotH,pts};
+  let areaPath='M'+sx(pts[0].h).toFixed(1)+','+(padT+plotH)+' ';
+  pts.forEach(p=>areaPath+='L'+sx(p.h).toFixed(1)+','+sy(p.prod).toFixed(1)+' ');
+  areaPath+='L'+sx(pts[pts.length-1].h).toFixed(1)+','+(padT+plotH)+' Z';
+  let linePath='';
+  pts.forEach((p,i)=>linePath+=(i===0?'M':'L')+sx(p.h).toFixed(1)+','+sy(p.prod).toFixed(1)+' ');
+  let xLabels='';
+  [6,9,12,15,18].forEach(h=>{xLabels+='<text x="'+sx(h).toFixed(1)+'" y="'+(H-8)+'" text-anchor="middle" font-size="9" fill="'+(isDark?'#94A3B8':'#64748B')+'" font-family="Vazirmatn">'+toFa(h)+'</text>';});
+  let grid='';
+  [0,0.5,1].forEach(f=>{const y=padT+plotH-f*plotH;grid+='<line x1="'+padL+'" y1="'+y.toFixed(1)+'" x2="'+(W-padR)+'" y2="'+y.toFixed(1)+'" stroke="'+(isDark?'#334155':'#E2E8F0')+'" stroke-width="1" stroke-dasharray="2,3"/>';});
+  const dailyKwh=pts.reduce((s,p)=>s+p.prod*0.5,0);
+  const defs='<defs>'+
+    '<linearGradient id="sunArea" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#FBBF24" stop-opacity="0.5"/><stop offset="100%" stop-color="#F59E0B" stop-opacity="0.05"/></linearGradient>'+
+    '<linearGradient id="sunLine" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#FBBF24"/><stop offset="50%" stop-color="#F59E0B"/><stop offset="100%" stop-color="#FBBF24"/></linearGradient>'+
+    '</defs>';
+  const title=isEn?'☀️ Daily Production':'☀️ تولید روزانه';
+  const iprod=_sunProdAt(_sunCurveHour,sunH,actualKw,eff);
+  const ipx=sx(_sunCurveHour).toFixed(1),ipy=sy(Math.min(iprod,maxProd)).toFixed(1);
+  const ihh=Math.floor(_sunCurveHour),imm=Math.round((_sunCurveHour-ihh)*60);
+  const itimeStr=toFa(ihh)+':'+toFa(imm<10?'0'+imm:imm);
+  box.innerHTML='<div class="chart-card sun-curve-card"><div class="chart-head"><span class="chart-icon">☀️</span><h4>'+title+'</h4><span class="sun-curve-total">'+num(dailyKwh,1)+' kWh</span></div>'+
+    '<div class="sun-readout">'+
+      '<div class="sr-col"><div id="srTime" class="sr-time">'+itimeStr+'</div><div class="sr-lbl">'+(isEn?'Time':'ساعت')+'</div></div>'+
+      '<div class="sr-col"><div id="srProd" class="sr-prod">'+(iprod>0?num(iprod,2):'۰')+' kW</div><div class="sr-lbl">'+(isEn?'Generating':'تولید لحظه')+'</div></div>'+
+    '</div>'+
+    '<div class="chart-svg-wrap"><svg viewBox="0 0 '+W+' '+H+'" style="width:100%;height:auto;display:block;">'+defs+grid+
+    '<path d="'+areaPath+'" fill="url(#sunArea)"/>'+
+    '<path d="'+linePath+'" fill="none" stroke="url(#sunLine)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>'+
+    '<line id="sunMarkerLine" x1="'+ipx+'" y1="'+padT+'" x2="'+ipx+'" y2="'+(padT+plotH)+'" stroke="#F59E0B" stroke-width="1" stroke-dasharray="3,3" opacity="0.6"/>'+
+    '<circle id="sunMarkerGlow" cx="'+ipx+'" cy="'+ipy+'" r="9" fill="#FBBF24" opacity="0.3"/>'+
+    '<circle id="sunMarkerDot" cx="'+ipx+'" cy="'+ipy+'" r="5" fill="#F59E0B" stroke="#fff" stroke-width="2"/>'+
+    '<text id="sunMarkerTxt" x="'+ipx+'" y="'+(ipy-10)+'" text-anchor="middle" font-size="10" font-weight="700" fill="#B45309" font-family="Vazirmatn">'+num(iprod,1)+'kW</text>'+
+    xLabels+
+    '<text x="14" y="'+(padT+plotH/2).toFixed(1)+'" text-anchor="middle" font-size="8" fill="'+(isDark?'#94A3B8':'#64748B')+'" font-family="Vazirmatn" transform="rotate(-90 14 '+(padT+plotH/2)+')">kW</text>'+
+    '</svg></div>'+
+    '<div class="sun-slider-wrap">'+
+      '<input type="range" id="sunHourSlider" min="5" max="19" step="0.5" value="'+_sunCurveHour+'">'+
+      '<div class="sun-slider-labels"><span>🌅 '+toFa(5)+'</span><span>☀️ '+toFa(12)+'</span><span>🌆 '+toFa(19)+'</span></div>'+
+    '</div>'+
+    '<p class="chart-note">💡 '+(isEn?'Drag to see hourly output. Starts at current time.':'برای مشاهده تولید در هر ساعت، نوار را بکشید. موقعیت اولیه زمان فعلی است.')+'</p></div>';
+  const slider=$('#sunHourSlider');
+  if(slider)slider.addEventListener('input',function(){haptic(5);_sunCurveHour=+this.value;updateSunMarker();});
+}
+
+/* ===== DASHBOARD SUMMARY (خلاصه دشبورد) ===== */
+function renderDashboard(actualKw,nP,wP,covPct,grandTotal,cur){
+  const box=$('#dashBox');if(!box)return;
+  const isEn=currentLang==='en';
+  const title=isEn?'⚡ System Summary':'⚡ خلاصه سیستم';
+  const stats=[
+    {icon:'⚡',val:num(actualKw,2)+' kW',lbl:isEn?'Capacity':'ظرفیت',color:'#0D9488'},
+    {icon:'🔆',val:toFa(nP),lbl:isEn?'Panels':'پنل',color:'#F59E0B'},
+    {icon:'✅',val:toFa(Math.round(covPct))+'٪',lbl:isEn?'Coverage':'پوشش',color:'#10B981'},
+    {icon:'💰',val:money(grandTotal,cur).split(' ')[0],lbl:isEn?'Total':'مبلغ',color:'#8B5CF6',sub:cur},
+  ];
+  box.innerHTML='<div class="chart-card dash-card"><div class="chart-head"><span class="chart-icon">⚡</span><h4>'+title+'</h4></div>'+
+    '<div class="dash-grid">'+stats.map(s=>
+      '<div class="dash-stat">'+
+        '<div class="dash-icon" style="color:'+s.color+'">'+s.icon+'</div>'+
+        '<div class="dash-val">'+s.val+'</div>'+
+        '<div class="dash-lbl">'+s.lbl+(s.sub?' <small>'+s.sub+'</small>':'')+'</div>'+
+      '</div>'
+    ).join('')+'</div></div>';
+}
+
 function renderBanner(sT,aKw,nP,wP,invKw,bV,bBank,bType){
   const box=$('#recommendBanner');if(!box)return;
   const btL={lithium:'LiFePO₄','li-ion':'Li-ion',gel:'Gel',dry:'AGM',lead:'Lead'}[bType]||'';
@@ -634,7 +936,7 @@ function updateStatusBar(){
 function renderQuoteCards(rows){
   const container=$('#quoteItems');if(!container)return;
   container.innerHTML=rows.map(r=>
-    '<div class="quote-item"><div class="qi-title">'+r[0]+'</div>'+
+    '<div class="quote-item"><div class="qi-title">◆ '+r[0]+'</div>'+
     '<div class="qi-row"><span>'+(currentLang==='en'?'Qty':'تعداد')+'</span><b>'+r[1]+'</b></div>'+
     '<div class="qi-row"><span>'+(currentLang==='en'?'Unit price':'قیمت واحد')+'</span><b>'+r[2]+'</b></div>'+
     '<div class="qi-row"><span>'+(currentLang==='en'?'Total':'قیمت کل')+'</span><b>'+r[3]+'</b></div></div>'
@@ -794,9 +1096,11 @@ function recalc(){
   renderProt(systemType,prot);
   renderDiag(systemType,panelCount,pW,prot,bKwh,battV);
   renderChart(dKwh);
+  renderSunCurve(actualKw,sunH,eff);
 
   const btBanner=systemType!=='ongrid'?($('#batteryType')?.value||null):null;
   renderBanner(systemType,actualKw,panelCount,pW,invKw,battV,bBank,btBanner);
+  renderRoof(panelCount,pW,systemType);
 
   const cur=settings.currency;
   const ppw=settings.panelPrice[cur]||0;
@@ -844,6 +1148,7 @@ function recalc(){
   if(systemType!=='ongrid')rows.push([(currentLang==='en'?'Battery ':'باتری (')+num(bKwh,1)+'kWh)','۱',money(batCost),money(batCost)]);
   if(systemType==='offgrid'&&ctrlCost>0&&ctrl)rows.push([(currentLang==='en'?'Controller ':'شارژ کنترلر ')+toFa(ctrl.rated)+'A','۱',money(ctrlCost),money(ctrlCost)]);
   renderQuoteCards(rows);
+  renderDashboard(actualKw,panelCount,pW,covPct,grandTotal,cur);
 
   const tb=$('#totalsBox');
   if(tb)tb.innerHTML='<div class="total-line"><span>'+(currentLang==='en'?'Grand Total':'مبلغ نهایی')+'</span><span><b>'+money(grandTotal)+'</b></span></div>';
@@ -1405,6 +1710,5 @@ if(!$$('#applianceRows .appliance-row').length){
   addApp(currentLang==='en'?'Water pump':'پمپ آب',750,2,1);
   recalc();
 }
-
-console.log('%c☀️ آفتاب‌یار v5 — PDF viewer + ROI + Warranty + Backup', 'color:#0D9488;font-size:14px;font-weight:bold;');
+console.log('%c☀️ آفتاب‌یار v5 — آماده', 'color:#0D9488;font-size:14px;font-weight:bold;');
 })();
